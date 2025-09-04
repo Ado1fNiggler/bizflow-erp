@@ -51,11 +51,16 @@ app.set('trust proxy', 1);
 // ============================================
 // Security Middleware
 // ============================================
-// Disable CSP temporarily for development
-app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP completely for now
-  crossOriginEmbedderPolicy: false,
-}));
+// Security Middleware - conditionally disable CSP
+if (process.env.DISABLE_HELMET_CSP === 'true') {
+  // Disable all security headers for development
+  console.log('🔓 Security headers disabled for development');
+} else {
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP completely
+    crossOriginEmbedderPolicy: false,
+  }));
+}
 
 // CORS configuration
 app.use(cors(corsConfig));
