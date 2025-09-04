@@ -1,0 +1,29 @@
+# GitHub Push Commands
+# ΑΝΤΙΚΑΤΕΣΤΗΣΕ το YOUR_USERNAME με το δικό σου GitHub username!
+
+# 1. Σύνδεση με το GitHub repository
+git remote add origin https://github.com/YOUR_USERNAME/bizflow-erp.git
+
+# 2. Push του κώδικα
+git branch -M main
+git push -u origin main
+
+# Θα σου ζητήσει:
+# Username: (το GitHub username σου)
+# Password: (ΟΧΙ τον κωδικό σου! Χρειάζεσαι Personal Access Token - δες παρακάτω)
+
+# ========================================
+# ΑΝ ΣΟΥ ΖΗΤΗΣΕΙ PASSWORD:
+# ========================================
+# Το GitHub δεν δέχεται πλέον passwords. Χρειάζεσαι Personal Access Token:
+# 
+# 1. Πήγαινε: https://github.com/settings/tokens
+# 2. Generate new token (classic)
+# 3. Note: "BizFlow ERP Deploy"
+# 4. Expiration: 90 days
+# 5. Scopes: ✅ repo (όλα τα repo checkboxes)
+# 6. Generate token
+# 7. ΑΝΤΙΓΡΑΨΕ το token (θα το δεις μόνο 1 φορά!)
+# 8. Χρησιμοποίησε το token ως password
+#
+# ========================================

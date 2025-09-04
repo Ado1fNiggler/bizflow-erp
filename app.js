@@ -162,16 +162,7 @@ app.get('/health', (req, res) => {
 // Root Endpoint
 // ============================================
 app.get('/', (req, res) => {
-  res.json({
-    name: 'VegeMarket Pro API',
-    version: '2.0.0',
-    description: 'Πρόγραμμα Λαχαναγοράς - Vegetable Market Management System',
-    documentation: process.env.NODE_ENV === 'development' ? '/api-docs' : null,
-    health: '/health',
-    api: {
-      v1: '/api/v1'
-    }
-  });
+  res.send('BizFlow ERP is running');
 });
 
 // ============================================
