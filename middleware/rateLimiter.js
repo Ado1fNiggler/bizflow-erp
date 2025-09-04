@@ -3,7 +3,7 @@
 
 import rateLimit from 'express-rate-limit';
 // import RedisStore from 'rate-limit-redis'; // Optional - only if Redis is configured
-import { logger } from './logger.js';
+import { logger } from '../utils/logger.js';
 import auditService from '../services/auditService.js';
 
 // In-memory store for tracking

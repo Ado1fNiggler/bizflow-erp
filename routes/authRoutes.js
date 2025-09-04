@@ -210,7 +210,7 @@ router.post('/login', rateLimiter('login'), loginValidation, async (req, res) =>
 });
 
 // POST /api/auth/register
-router.post('/register', rateLimiter('register'), registerValidation, async (req, res) => {
+router.post('/register', rateLimiter('auth'), registerValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -374,7 +374,7 @@ router.post('/logout', authenticate, async (req, res) => {
 });
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', rateLimiter('password-reset'), async (req, res) => {
+router.post('/forgot-password', rateLimiter('passwordReset'), async (req, res) => {
   try {
     const { email } = req.body;
 

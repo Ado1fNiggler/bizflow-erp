@@ -1,7 +1,7 @@
 // config/cors.js
 // CORS (Cross-Origin Resource Sharing) configuration
 
-import { logger } from '../middleware/logger.js';
+import { logger } from '../utils/logger.js';
 
 // Allowed origins based on environment
 const getAllowedOrigins = () => {
