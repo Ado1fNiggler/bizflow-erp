@@ -117,11 +117,22 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Serve frontend files
 const frontendPath = path.join(__dirname, 'frontend');
-app.use('/app', express.static(frontendPath));
 
-// Serve index.html for /app route
-app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+// Serve static files from frontend directory
+app.use('/app', express.static(frontendPath, {
+  index: 'index.html',
+  fallthrough: false
+}));
+
+// Also serve frontend files at root/app path
+app.get('/app/*', (req, res) => {
+  const filePath = path.join(__dirname, 'frontend', 'index.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error serving frontend:', err);
+      res.status(404).send('Frontend not found');
+    }
+  });
 });
 
 // ============================================
@@ -170,8 +181,13 @@ app.get('/health', (req, res) => {
 // Root Endpoint
 // ============================================
 app.get('/', (req, res) => {
-  // Redirect to the main app
-  res.redirect('/app');
+  // Send the frontend HTML directly
+  const indexPath = path.join(__dirname, 'frontend', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      res.send('BizFlow ERP is running');
+    }
+  });
 });
 
 // ============================================
