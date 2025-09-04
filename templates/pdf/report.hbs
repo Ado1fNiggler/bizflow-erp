@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>{{reportTitle}}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+        }
+        
+        /* Cover Page */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 297mm;
+            text-align: center;
+            page-break-after: always;
+        }
+        
+        .cover-logo {
+            width: 80mm;
+            margin-bottom: 40px;
+        }
+        
+        .cover-title {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .cover-subtitle {
+            font-size: 16pt;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .cover-period {
+            font-size: 14pt;
+            color: #333;
+            padding: 10px 20px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        
+        .cover-metadata {
+            position: absolute;
+            bottom: 30mm;
+            font-size: 10pt;
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        /* Header & Footer */
+        .report-header {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header-left {
+            display: table-cell;
+            width: 70%;
+        }
+        
+        .header-right {
+            display: table-cell;
+            width: 30%;
+            text-align: right;
+        }
+        
+        .report-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+        
+        .report-subtitle {
+            font-size: 11pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .page-number {
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        /* Executive Summary */
+        .summary-box {
+            background-color: #f0f4f8;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .summary-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        
+        .summary-content {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* KPI Cards */
+        .kpi-container {
+            display: table;
+            width: 100%;
+            margin: 30px 0;
+        }
+        
+        .kpi-card {
+            display: table-cell;
+            width: 30%;
+            padding: 15px;
+            background-color: #fafafa;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+            margin-right: 3%;
+        }
+        
+        .kpi-value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .kpi-label {
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .kpi-change {
+            font-size: 9pt;
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .kpi-change.positive {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .kpi-change.negative {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        
+        .data-table caption {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: left;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        .data-table th {
+            background-color: #1f2937;
+            color: white;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .data-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 9pt;
+        }
+        
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        .data-table .number {
+            text-align: right;
+        }
+        
+        .data-table .highlight {
+            background-color: #fef3c7;
+            font-weight: bold;
+        }
+        
+        .data-table tfoot td {
+            font-weight: bold;
+            background-color: #f3f4f6;
+            border-top: 2px solid #333;
+        }
+        
+        /* Charts placeholder */
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            background-color: #fafafa;
+            text-align: center;
+        }
+        
+        .chart-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14pt;
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .subsection-header {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #374151;
+            margin: 20px 0 15px 0;
+        }
+        
+        /* Lists */
+        .report-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .report-list li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        /* Insights & Recommendations */
+        .insight-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .insight-box h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-box {
+            background-color: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .recommendation-box h4 {
+            color: #075985;
+            margin-bottom: 10px;
+        }
+        
+        /* Footer */
+        .report-footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .footer-content {
+            display: table;
+            width: 100%;
+        }
+        
+        .footer-left {
+            display: table-cell;
+            width: 50%;
+        }
+        
+        .footer-right {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+        }
+        
+        /* Page breaks */
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+        
+        /* Confidential watermark */
+        .confidential {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(239, 68, 68, 0.08);
+            font-weight: bold;
+            z-index: -1;
+        }
+        
+        /* Print specific */
+        @media print {
+            .page {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    {{#if isConfidential}}
+    <div class="confidential">ΕΜΠΙΣΤΕΥΤΙΚΟ</div>
+    {{/if}}
+    
+    <!-- Cover Page -->
+    {{#if showCover}}
+    <div class="cover-page">
+        {{#if company.logoUrl}}
+        <img src="{{company.logoUrl}}" alt="{{company.name}}" class="cover-logo">
+        {{/if}}
+        
+        <h1 class="cover-title">{{reportTitle}}</h1>
+        <h2 class="cover-subtitle">{{reportSubtitle}}</h2>
+        
+        <div class="cover-period">
+            {{#if reportPeriod}}
+            {{reportPeriod}}
+            {{else}}
+            {{formatDate dateFrom}} - {{formatDate dateTo}}
+            {{/if}}
+        </div>
+        
+        <div class="cover-metadata">
+            <strong>{{company.name}}</strong><br>
+            Ημερομηνία Έκδοσης: {{formatDate generatedDate}}<br>
+            Αναφορά ID: {{reportId}}<br>
+            {{#if preparedBy}}Συντάκτης: {{preparedBy}}{{/if}}
+        </div>
+    </div>
+    {{/if}}
+    
+    <!-- Report Content -->
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="report-header">
+            <div class="header-left">
+                <div class="report-title">{{reportTitle}}</div>
+                <div class="report-subtitle">
+                    Περίοδος: {{formatDate dateFrom}} - {{formatDate dateTo}}
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="page-number">Σελίδα <span class="current-page">1</span></div>
+                <div style="font-size: 9pt; color: #666; margin-top: 5px;">
+                    {{formatDateTime generatedDate}}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Executive Summary -->
+        {{#if executiveSummary}}
+        <div class="summary-box">
+            <h2 class="summary-title">Επιτελική Σύνοψη</h2>
+            <div class="summary-content">
+                {{executiveSummary}}
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- KPIs -->
+        {{#if kpis}}
+        <div class="kpi-container">
+            {{#each kpis}}
+            <div class="kpi-card">
+                <div class="kpi-value">{{this.value}}</div>
+                <div class="kpi-label">{{this.label}}</div>
+                {{#if this.change}}
+                <div class="kpi-change {{this.changeType}}">
+                    {{#if this.isPositive}}↑{{else}}↓{{/if}} {{this.change}}
+                </div>
+                {{/if}}
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+        
+        <!-- Financial Overview Section -->
+        {{#if financialData}}
+        <h2 class="section-header">Οικονομική Επισκόπηση</h2>
+        
+        <table class="data-table">
+            <caption>Συγκεντρωτικά Οικονομικά Στοιχεία</caption>
+            <thead>
+                <tr>
+                    <th>Κατηγορία</th>
+                    <th class="number">Τρέχουσα Περίοδος</th>
+                    <th class="number">Προηγούμενη Περίοδος</th>
+                    <th class="number">Μεταβολή</th>
+                    <th class="number">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each financialData}}
+                <tr {{#if this.highlight}}class="highlight"{{/if}}>
+                    <td>{{this.category}}</td>
+                    <td class="number">{{formatCurrency this.current}}</td>
+                    <td class="number">{{formatCurrency this.previous}}</td>
+                    <td class="number">{{formatCurrency this.change}}</td>
+                    <td class="number">{{this.changePercent}}%</td>
+                </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>ΣΥΝΟΛΟ</td>
+                    <td class="number">{{formatCurrency totals.current}}</td>
+                    <td class="number">{{formatCurrency totals.previous}}</td>
+                    <td class="number">{{formatCurrency totals.change}}</td>
+                    <td class="number">{{totals.changePercent}}%</td>
+                </tr>
+            </tfoot>
+        </table>
+        {{/if}}
+        
+        <!-- Sales Analysis -->
+        {{#if salesData}}
+        <h2 class="section-header">Ανάλυση Πωλήσεων</h2>
+        
+        <h3 class="subsection-header">Πωλήσεις ανά Κατηγορία</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Κατηγορία</th>
+                    <th class="number">Τεμάχια</th>
+                    <th class="number">Αξία</th>
+                    <th class="number">% επί Συνόλου</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each salesData.byCategory}}
+                <tr>
+                    <td>{{this.category}}</td>
+                    <td class="number">{{formatNumber this.quantity}}</td>
+                    <td class="number">{{formatCurrency this.value}}</td>
+                    <td class="number">{{this.percentage}}%</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        
+        <!-- Sales Chart Placeholder -->
+        <div class="chart-container">
+            <h3 class="chart-title">Διάγραμμα Πωλήσεων</h3>
+            <div class="chart-placeholder">
+                [Διάγραμμα Πωλήσεων]
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- Customer Analysis -->
+        {{#if customerData}}
+        <h2 class="section-header">Ανάλυση Πελατών</h2>
+        
+        <h3 class="subsection-header">Top 10 Πελάτες</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Πελάτης</th>
+                    <th class="number">Αγορές</th>
+                    <th class="number">Αξία</th>
+                    <th class="number">% επί Συνόλου</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each customerData.topCustomers}}
+                <tr>
+                    <td>{{this.rank}}</td>
+                    <td>{{this.name}}</td>
+                    <td class="number">{{this.purchases}}</td>
+                    <td class="number">{{formatCurrency this.value}}</td>
+                    <td class="number">{{this.percentage}}%</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{/if}}
+        
+        <!-- Insights -->
+        {{#if insights}}
+        <div class="insight-box">
+            <h4>💡 Βασικά Ευρήματα</h4>
+            <ul class="report-list">
+                {{#each insights}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+        {{/if}}
+        
+        <!-- Recommendations -->
+        {{#if recommendations}}
+        <div class="recommendation-box">
+            <h4>📈 Προτάσεις Βελτίωσης</h4>
+            <ul class="report-list">
+                {{#each recommendations}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+        {{/if}}
+        
+        <!-- Appendix -->
+        {{#if appendix}}
+        <div class="page-break"></div>
+        <h2 class="section-header">Παράρτημα</h2>
+        {{#each appendix}}
+        <h3 class="subsection-header">{{this.title}}</h3>
+        <p>{{this.content}}</p>
+        {{/each}}
+        {{/if}}
+        
+        <!-- Footer -->
+        <div class="report-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    {{company.name}} | {{reportTitle}}
+                </div>
+                <div class="footer-right">
+                    {{#if isConfidential}}ΕΜΠΙΣΤΕΥΤΙΚΟ | {{/if}}
+                    Σελίδα <span class="current-page">1</span> από <span class="total-pages">1</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</body>
+</html>

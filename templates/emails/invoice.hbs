@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τιμολόγιο {{invoice.documentNumber}}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); padding: 30px; text-align: center; color: white; }
+        .content { padding: 30px; }
+        .invoice-details { background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .table th { background-color: #f1f5f9; padding: 12px; text-align: left; font-weight: 600; color: #475569; }
+        .table td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .total-row { background-color: #f8fafc; font-weight: 600; }
+        .button { display: inline-block; background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; }
+        .footer { background-color: #1f2937; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }
+        
+        @media screen and (max-width: 600px) {
+            .content { padding: 20px; }
+            .table { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        
+        <!-- Header -->
+        <div class="header">
+            {{#if company.logoUrl}}
+                <img src="{{company.logoUrl}}" alt="{{company.name}}" style="height: 40px; margin-bottom: 10px;">
+            {{else}}
+                <h1 style="margin: 0; font-size: 28px;">{{company.name}}</h1>
+            {{/if}}
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Τιμολόγιο Παροχής Υπηρεσιών</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            
+            <!-- Greeting -->
+            <p style="color: #1f2937; font-size: 16px; margin-bottom: 20px;">
+                Αγαπητέ/ή <strong>{{customer.name}}</strong>,
+            </p>
+            
+            <p style="color: #4b5563; line-height: 1.6;">
+                Σας αποστέλλουμε το τιμολόγιο <strong>{{invoice.documentNumber}}</strong> για την παραγγελία σας.
+                Παρακαλούμε όπως προβείτε στην εξόφλησή του εντός της προθεσμίας πληρωμής.
+            </p>
+            
+            <!-- Invoice Details Box -->
+            <div class="invoice-details">
+                <table width="100%">
+                    <tr>
+                        <td width="50%">
+                            <strong style="color: #64748b;">Αριθμός Τιμολογίου:</strong><br>
+                            <span style="color: #1f2937; font-size: 18px;">{{invoice.documentNumber}}</span>
+                        </td>
+                        <td width="50%" style="text-align: right;">
+                            <strong style="color: #64748b;">Ημερομηνία:</strong><br>
+                            <span style="color: #1f2937; font-size: 18px;">{{formatDate invoice.date}}</span>
+                        </td>
+                    </tr>
+                    <tr style="height: 15px;"></tr>
+                    <tr>
+                        <td>
+                            <strong style="color: #64748b;">Πληρωμή έως:</strong><br>
+                            <span style="color: #ef4444; font-size: 18px; font-weight: 600;">{{formatDate invoice.dueDate}}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <strong style="color: #64748b;">Ποσό Πληρωμής:</strong><br>
+                            <span style="color: #059669; font-size: 22px; font-weight: 700;">{{formatCurrency invoice.totalAmount}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Customer Info -->
+            <div style="margin: 30px 0;">
+                <h3 style="color: #1f2937; font-size: 16px; margin-bottom: 10px;">Στοιχεία Πελάτη</h3>
+                <div style="color: #4b5563; line-height: 1.6;">
+                    <strong>{{customer.name}}</strong><br>
+                    {{#if customer.vatNumber}}ΑΦΜ: {{customer.vatNumber}}<br>{{/if}}
+                    {{#if customer.taxOffice}}ΔΟΥ: {{customer.taxOffice}}<br>{{/if}}
+                    {{customer.address}}<br>
+                    {{customer.city}}, {{customer.postalCode}}
+                </div>
+            </div>
+            
+            <!-- Invoice Items -->
+            <h3 style="color: #1f2937; font-size: 16px; margin: 30px 0 10px 0;">Αναλυτική Περιγραφή</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Περιγραφή</th>
+                        <th style="text-align: center;">Ποσ.</th>
+                        <th style="text-align: right;">Τιμή</th>
+                        <th style="text-align: right;">ΦΠΑ</th>
+                        <th style="text-align: right;">Σύνολο</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each invoice.items}}
+                    <tr>
+                        <td>{{this.description}}</td>
+                        <td style="text-align: center;">{{this.quantity}}</td>
+                        <td style="text-align: right;">{{formatCurrency this.unitPrice}}</td>
+                        <td style="text-align: right;">{{this.taxRate}}%</td>
+                        <td style="text-align: right;">{{formatCurrency this.totalAmount}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align: right; padding: 10px 12px;"><strong>Καθαρή Αξία:</strong></td>
+                        <td style="text-align: right; padding: 10px 12px;">{{formatCurrency invoice.netAmount}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align: right; padding: 10px 12px;"><strong>ΦΠΑ ({{invoice.vatRate}}%):</strong></td>
+                        <td style="text-align: right; padding: 10px 12px;">{{formatCurrency invoice.taxAmount}}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="4" style="text-align: right; padding: 12px; font-size: 18px;"><strong>Σύνολο Πληρωτέο:</strong></td>
+                        <td style="text-align: right; padding: 12px; font-size: 18px; color: #059669;"><strong>{{formatCurrency invoice.totalAmount}}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <!-- Payment Instructions -->
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 30px 0;">
+                <h4 style="color: #92400e; margin: 0 0 10px 0;">💳 Τρόποι Πληρωμής</h4>
+                <p style="color: #78350f; margin: 5px 0; font-size: 14px;">
+                    <strong>Τραπεζική Κατάθεση:</strong><br>
+                    {{company.bankName}} - IBAN: {{company.iban}}<br>
+                    <small>Αιτιολογία: {{invoice.documentNumber}} - {{customer.name}}</small>
+                </p>
+                {{#if company.acceptsCards}}
+                <p style="color: #78350f; margin: 10px 0 5px 0; font-size: 14px;">
+                    <strong>Πιστωτική/Χρεωστική Κάρτα:</strong><br>
+                    Πατήστε το κουμπί παρακάτω για online πληρωμή
+                </p>
+                {{/if}}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="{{invoice.viewUrl}}" class="button" style="margin: 0 10px;">
+                    📄 Προβολή Τιμολογίου
+                </a>
+                {{#if invoice.pdfUrl}}
+                <a href="{{invoice.pdfUrl}}" class="button" style="margin: 0 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    📥 Λήψη PDF
+                </a>
+                {{/if}}
+                {{#if invoice.paymentUrl}}
+                <a href="{{invoice.paymentUrl}}" class="button" style="margin: 0 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    💳 Πληρωμή Online
+                </a>
+                {{/if}}
+            </div>
+            
+            <!-- Notes -->
+            {{#if invoice.notes}}
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 30px 0;">
+                <h4 style="color: #1f2937; margin: 0 0 10px 0; font-size: 14px;">Σημειώσεις:</h4>
+                <p style="color: #4b5563; margin: 0; font-size: 14px; line-height: 1.5;">
+                    {{invoice.notes}}
+                </p>
+            </div>
+            {{/if}}
+            
+            <!-- Contact Info -->
+            <div style="text-align: center; margin: 40px 0; padding: 20px; background-color: #eff6ff; border-radius: 8px;">
+                <p style="color: #1e40af; margin: 0; font-size: 14px;">
+                    <strong>Έχετε απορίες;</strong><br>
+                    Επικοινωνήστε μαζί μας:<br>
+                    📞 {{company.phone}} | ✉️ <a href="mailto:{{company.email}}" style="color: #2563eb;">{{company.email}}</a>
+                </p>
+            </div>
+            
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0;">
+                {{company.name}} | {{company.vatNumber}}<br>
+                {{company.address}}, {{company.city}} {{company.postalCode}}
+            </p>
+            <p style="margin: 10px 0; font-size: 11px; opacity: 0.8;">
+                Το email αυτό δημιουργήθηκε αυτόματα. Παρακαλούμε μην απαντήσετε σε αυτό το email.
+            </p>
+            {{#if unsubscribeUrl}}
+            <p style="margin: 10px 0 0 0;">
+                <a href="{{unsubscribeUrl}}" style="color: #6b7280; text-decoration: underline;">
+                    Διαγραφή από τη λίστα
+                </a>
+            </p>
+            {{/if}}
+        </div>
+        
+    </div>
+    
+</body>
+</html>

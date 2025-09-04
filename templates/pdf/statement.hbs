@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>Κίνηση Λογαριασμού - {{customer.name}}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+        }
+        
+        /* Header */
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header-top {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .company-section {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+        
+        .statement-title-section {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: top;
+        }
+        
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .statement-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        
+        .statement-period {
+            font-size: 11pt;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* Customer Info Box */
+        .info-section {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .customer-box {
+            display: table-cell;
+            width: 60%;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .summary-box {
+            display: table-cell;
+            width: 38%;
+            margin-left: 2%;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border: 1px solid #0066cc;
+        }
+        
+        .box-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .box-content {
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        
+        /* Summary Statistics */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        
+        .summary-label {
+            color: #666;
+        }
+        
+        .summary-value {
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .summary-value.debit {
+            color: #dc3545;
+        }
+        
+        .summary-value.credit {
+            color: #28a745;
+        }
+        
+        .balance-row {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #0066cc;
+            font-size: 12pt;
+        }
+        
+        /* Transactions Table */
+        .transactions-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+        
+        .transactions-table caption {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .transactions-table th {
+            background-color: #343a40;
+            color: white;
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        
+        .transactions-table th.text-center {
+            text-align: center;
+        }
+        
+        .transactions-table th.text-right {
+            text-align: right;
+        }
+        
+        .transactions-table td {
+            padding: 6px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .transactions-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .transactions-table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .transactions-table .date-col {
+            width: 10%;
+        }
+        
+        .transactions-table .doc-col {
+            width: 15%;
+        }
+        
+        .transactions-table .desc-col {
+            width: 35%;
+        }
+        
+        .transactions-table .debit-col,
+        .transactions-table .credit-col {
+            width: 12%;
+            text-align: right;
+        }
+        
+        .transactions-table .balance-col {
+            width: 12%;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .transactions-table .ref-col {
+            width: 10%;
+            text-align: center;
+        }
+        
+        /* Transaction types */
+        .doc-type {
+            font-size: 8pt;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .doc-type.invoice {
+            background-color: #cfe2ff;
+            color: #004085;
+        }
+        
+        .doc-type.payment {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .doc-type.credit {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Monthly subtotals */
+        .month-header {
+            background-color: #e7f3ff;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+        
+        .month-footer {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            border-top: 2px solid #666;
+        }
+        
+        /* Grand totals */
+        .grand-total {
+            background-color: #343a40;
+            color: white;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+        
+        .grand-total td {
+            padding: 10px 6px;
+            border: none;
+        }
+        
+        /* Aging Analysis */
+        .aging-section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+        
+        .aging-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .aging-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .aging-table th {
+            background-color: #ffc107;
+            color: #000;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .aging-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        .aging-table .period {
+            font-weight: bold;
+            text-align: left;
+        }
+        
+        /* Notes Section */
+        .notes-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            page-break-inside: avoid;
+        }
+        
+        .notes-title {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .notes-content {
+            font-size: 9pt;
+            line-height: 1.5;
+            color: #495057;
+        }
+        
+        /* Payment Instructions */
+        .payment-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border: 2px solid #0066cc;
+            page-break-inside: avoid;
+        }
+        
+        .payment-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        
+        .payment-content {
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+            font-size: 8pt;
+            color: #666;
+        }
+        
+        .footer-content {
+            display: table;
+            width: 100%;
+        }
+        
+        .footer-left {
+            display: table-cell;
+            width: 33%;
+            text-align: left;
+        }
+        
+        .footer-center {
+            display: table-cell;
+            width: 34%;
+            text-align: center;
+        }
+        
+        .footer-right {
+            display: table-cell;
+            width: 33%;
+            text-align: right;
+        }
+        
+        /* Page break */
+        .page-break {
+            page-break-after: always;
+        }
+        
+        /* Overdue highlight */
+        .overdue {
+            background-color: #f8d7da !important;
+        }
+        
+        .overdue-marker {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        
+        /* Print specific */
+        @media print {
+            .page {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="company-section">
+                    <div class="company-name">{{company.name}}</div>
+                    <div class="company-details">
+                        {{company.address}}<br>
+                        {{company.city}}, {{company.postalCode}}<br>
+                        ΑΦΜ: {{company.vatNumber}} | ΔΟΥ: {{company.taxOffice}}<br>
+                        Τηλ: {{company.phone}} | Email: {{company.email}}
+                    </div>
+                </div>
+                <div class="statement-title-section">
+                    <div class="statement-title">ΚΙΝΗΣΗ ΛΟΓΑΡΙΑΣΜΟΥ</div>
+                    <div class="statement-period">
+                        Περίοδος: {{formatDate dateFrom}} - {{formatDate dateTo}}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 9pt; color: #666;">
+                        Ημερομηνία Έκδοσης: {{formatDate printDate}}<br>
+                        Αρ. Καταστ.: {{statementNumber}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Info & Summary -->
+        <div class="info-section">
+            <div class="customer-box">
+                <div class="box-title">Στοιχεία Πελάτη</div>
+                <div class="box-content">
+                    <strong>{{customer.name}}</strong><br>
+                    {{#if customer.code}}Κωδικός: {{customer.code}}<br>{{/if}}
+                    {{customer.address}}<br>
+                    {{customer.city}}, {{customer.postalCode}}<br>
+                    ΑΦΜ: {{customer.vatNumber}} | ΔΟΥ: {{customer.taxOffice}}<br>
+                    {{#if customer.phone}}Τηλ: {{customer.phone}}<br>{{/if}}
+                    {{#if customer.email}}Email: {{customer.email}}{{/if}}
+                </div>
+            </div>
+            
+            <div class="summary-box">
+                <div class="box-title">Σύνοψη Περιόδου</div>
+                <div class="box-content">
+                    <div class="summary-row">
+                        <span class="summary-label">Υπόλοιπο Έναρξης:</span>
+                        <span class="summary-value">{{formatCurrency summary.openingBalance}}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Χρεώσεις:</span>
+                        <span class="summary-value debit">{{formatCurrency summary.totalDebits}}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Πιστώσεις:</span>
+                        <span class="summary-value credit">{{formatCurrency summary.totalCredits}}</span>
+                    </div>
+                    <div class="summary-row balance-row">
+                        <span class="summary-label"><strong>Τρέχον Υπόλοιπο:</strong></span>
+                        <span class="summary-value" style="font-size: 14pt;">
+                            <strong>{{formatCurrency summary.closingBalance}}</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Transactions Table -->
+        <table class="transactions-table">
+            <caption>Αναλυτική Κίνηση Λογαριασμού</caption>
+            <thead>
+                <tr>
+                    <th class="date-col">Ημ/νία</th>
+                    <th class="doc-col">Παραστατικό</th>
+                    <th class="desc-col">Περιγραφή</th>
+                    <th class="debit-col text-right">Χρέωση</th>
+                    <th class="credit-col text-right">Πίστωση</th>
+                    <th class="balance-col text-right">Υπόλοιπο</th>
+                    <th class="ref-col text-center">Ref</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Opening Balance Row -->
+                <tr style="background-color: #e7f3ff;">
+                    <td colspan="5"><strong>ΥΠΟΛΟΙΠΟ ΕΝΑΡΞΗΣ</strong></td>
+                    <td class="balance-col"><strong>{{formatCurrency summary.openingBalance}}</strong></td>
+                    <td></td>
+                </tr>
+                
+                {{#each transactions}}
+                    {{#if this.isMonthHeader}}
+                    <!-- Month Header -->
+                    <tr class="month-header">
+                        <td colspan="7">{{this.monthName}} {{this.year}}</td>
+                    </tr>
+                    {{/if}}
+                    
+                    <!-- Transaction Row -->
+                    <tr {{#if this.isOverdue}}class="overdue"{{/if}}>
+                        <td>{{formatDate this.date}}</td>
+                        <td>
+                            <span class="doc-type {{this.docTypeClass}}">{{this.docType}}</span><br>
+                            <strong>{{this.documentNumber}}</strong>
+                        </td>
+                        <td>
+                            {{this.description}}
+                            {{#if this.notes}}<br><small style="color: #666;">{{this.notes}}</small>{{/if}}
+                            {{#if this.isOverdue}}<span class="overdue-marker"> ΛΗΞΙΠΡΟΘΕΣΜΟ</span>{{/if}}
+                        </td>
+                        <td class="debit-col">
+                            {{#if this.debit}}{{formatCurrency this.debit}}{{/if}}
+                        </td>
+                        <td class="credit-col">
+                            {{#if this.credit}}{{formatCurrency this.credit}}{{/if}}
+                        </td>
+                        <td class="balance-col">
+                            {{formatCurrency this.runningBalance}}
+                        </td>
+                        <td class="ref-col">
+                            {{#if this.reference}}{{this.reference}}{{/if}}
+                        </td>
+                    </tr>
+                    
+                    {{#if this.isMonthFooter}}
+                    <!-- Month Footer -->
+                    <tr class="month-footer">
+                        <td colspan="3">Σύνολα {{this.monthName}}:</td>
+                        <td class="debit-col">{{formatCurrency this.monthDebits}}</td>
+                        <td class="credit-col">{{formatCurrency this.monthCredits}}</td>
+                        <td class="balance-col">{{formatCurrency this.monthBalance}}</td>
+                        <td></td>
+                    </tr>
+                    {{/if}}
+                {{/each}}
+                
+                <!-- Grand Total Row -->
+                <tr class="grand-total">
+                    <td colspan="3">ΣΥΝΟΛΑ ΠΕΡΙΟΔΟΥ:</td>
+                    <td class="text-right">{{formatCurrency summary.totalDebits}}</td>
+                    <td class="text-right">{{formatCurrency summary.totalCredits}}</td>
+                    <td class="text-right">{{formatCurrency summary.closingBalance}}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- Aging Analysis -->
+        {{#if agingAnalysis}}
+        <div class="aging-section">
+            <div class="aging-title">Ανάλυση Ληξιπρόθεσμων Υποχρεώσεων</div>
+            <table class="aging-table">
+                <thead>
+                    <tr>
+                        <th>Περίοδος</th>
+                        <th>0-30 ημέρες</th>
+                        <th>31-60 ημέρες</th>
+                        <th>61-90 ημέρες</th>
+                        <th>90+ ημέρες</th>
+                        <th>Σύνολο</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="period">Ποσό</td>
+                        <td>{{formatCurrency agingAnalysis.current}}</td>
+                        <td>{{formatCurrency agingAnalysis.days30}}</td>
+                        <td>{{formatCurrency agingAnalysis.days60}}</td>
+                        <td>{{formatCurrency agingAnalysis.days90plus}}</td>
+                        <td><strong>{{formatCurrency agingAnalysis.total}}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="period">Ποσοστό</td>
+                        <td>{{agingAnalysis.currentPercent}}%</td>
+                        <td>{{agingAnalysis.days30Percent}}%</td>
+                        <td>{{agingAnalysis.days60Percent}}%</td>
+                        <td>{{agingAnalysis.days90plusPercent}}%</td>
+                        <td><strong>100%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {{/if}}
+        
+        <!-- Notes -->
+        {{#if notes}}
+        <div class="notes-section">
+            <div class="notes-title">Σημειώσεις</div>
+            <div class="notes-content">
+                {{notes}}
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- Payment Instructions -->
+        {{#if showPaymentInstructions}}
+        <div class="payment-instructions">
+            <div class="payment-title">Οδηγίες Πληρωμής</div>
+            <div class="payment-content">
+                <strong>Τραπεζική Κατάθεση:</strong><br>
+                Τράπεζα: {{company.bankName}}<br>
+                IBAN: {{company.iban}}<br>
+                Δικαιούχος: {{company.name}}<br>
+                Αιτιολογία: {{customer.code}} - {{customer.name}}
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    Σελίδα 1 από 1
+                </div>
+                <div class="footer-center">
+                    {{#if company.website}}{{company.website}}{{/if}}
+                </div>
+                <div class="footer-right">
+                    Εκτύπωση: {{formatDateTime printDate}}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</body>
+</html>

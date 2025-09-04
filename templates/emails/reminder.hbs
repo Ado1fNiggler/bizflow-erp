@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Υπενθύμιση Πληρωμής - {{invoice.documentNumber}}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .content { padding: 30px; }
+        .alert-box { padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .alert-warning { background-color: #fef3c7; border-left: 4px solid #f59e0b; }
+        .alert-danger { background-color: #fee2e2; border-left: 4px solid #dc2626; }
+        .alert-info { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        .invoice-card { background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb; }
+        .button { display: inline-block; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; }
+        .button-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .button-secondary { background: #64748b; color: white; }
+        .footer { background-color: #1f2937; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }
+        
+        @media screen and (max-width: 600px) {
+            .content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        
+        <!-- Header based on urgency -->
+        {{#if isOverdue}}
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">⚠️ ΛΗΞΙΠΡΟΘΕΣΜΗ ΟΦΕΙΛΗ</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.95;">Το τιμολόγιό σας έχει καθυστερήσει {{daysOverdue}} ημέρες</p>
+        </div>
+        {{else if isDueSoon}}
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">⏰ Υπενθύμιση Πληρωμής</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.95;">Λήξη σε {{daysUntilDue}} ημέρες</p>
+        </div>
+        {{else}}
+        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">📬 Φιλική Υπενθύμιση</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.95;">Εκκρεμεί τιμολόγιο προς εξόφληση</p>
+        </div>
+        {{/if}}
+        
+        <!-- Content -->
+        <div class="content">
+            
+            <!-- Personalized Greeting -->
+            <p style="color: #1f2937; font-size: 16px; margin-bottom: 20px;">
+                Αγαπητέ/ή <strong>{{customer.name}}</strong>,
+            </p>
+            
+            <!-- Reminder Message based on status -->
+            {{#if isOverdue}}
+            <div class="alert-box alert-danger">
+                <p style="color: #7f1d1d; margin: 0; line-height: 1.6;">
+                    <strong>🔴 Το τιμολόγιό σας είναι ληξιπρόθεσμο!</strong><br>
+                    Παρακαλούμε όπως προβείτε <strong>άμεσα</strong> στην εξόφληση του τιμολογίου 
+                    <strong>{{invoice.documentNumber}}</strong> το οποίο έληξε στις <strong>{{formatDate invoice.dueDate}}</strong>.
+                    {{#if lateFee}}
+                    <br><br>
+                    <strong>Προσοχή:</strong> Λόγω καθυστέρησης έχουν προστεθεί τόκοι υπερημερίας ύψους {{formatCurrency lateFee}}.
+                    {{/if}}
+                </p>
+            </div>
+            {{else if isDueSoon}}
+            <div class="alert-box alert-warning">
+                <p style="color: #78350f; margin: 0; line-height: 1.6;">
+                    <strong>⏰ Υπενθύμιση επερχόμενης λήξης</strong><br>
+                    Σας υπενθυμίζουμε ότι το τιμολόγιο <strong>{{invoice.documentNumber}}</strong> 
+                    λήγει σε <strong>{{daysUntilDue}} ημέρες</strong> ({{formatDate invoice.dueDate}}).
+                    Παρακαλούμε φροντίστε για την έγκαιρη εξόφλησή του.
+                </p>
+            </div>
+            {{else}}
+            <div class="alert-box alert-info">
+                <p style="color: #1e3a8a; margin: 0; line-height: 1.6;">
+                    <strong>📋 Υπενθύμιση εκκρεμούς τιμολογίου</strong><br>
+                    Σας ενημερώνουμε ότι εκκρεμεί η εξόφληση του τιμολογίου <strong>{{invoice.documentNumber}}</strong>.
+                    Η προθεσμία πληρωμής είναι έως <strong>{{formatDate invoice.dueDate}}</strong>.
+                </p>
+            </div>
+            {{/if}}
+            
+            <!-- Invoice Details Card -->
+            <div class="invoice-card">
+                <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">📄 Στοιχεία Τιμολογίου</h3>
+                <table width="100%">
+                    <tr>
+                        <td style="padding: 8px 0;">
+                            <strong style="color: #64748b;">Αριθμός:</strong>
+                            <span style="color: #1f2937;">{{invoice.documentNumber}}</span>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                            <strong style="color: #64748b;">Ημερομηνία:</strong>
+                            <span style="color: #1f2937;">{{formatDate invoice.date}}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;">
+                            <strong style="color: #64748b;">Λήξη:</strong>
+                            <span style="color: {{#if isOverdue}}#dc2626{{else}}#1f2937{{/if}}; font-weight: 600;">
+                                {{formatDate invoice.dueDate}}
+                            </span>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                            <strong style="color: #64748b;">Κατάσταση:</strong>
+                            <span style="color: {{#if isOverdue}}#dc2626{{else if isDueSoon}}#f59e0b{{else}}#3b82f6{{/if}}; font-weight: 600;">
+                                {{#if isOverdue}}ΛΗΞΙΠΡΟΘΕΣΜΟ{{else if isDueSoon}}ΛΗΓΕΙ ΣΥΝΤΟΜΑ{{else}}ΕΚΚΡΕΜΕΙ{{/if}}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 15px 0;">
+                
+                <!-- Amount Details -->
+                <table width="100%" style="margin-top: 15px;">
+                    <tr>
+                        <td>
+                            <strong style="color: #64748b;">Αρχικό Ποσό:</strong>
+                        </td>
+                        <td style="text-align: right;">
+                            <span style="color: #1f2937; font-size: 18px;">{{formatCurrency invoice.totalAmount}}</span>
+                        </td>
+                    </tr>
+                    {{#if invoice.paidAmount}}
+                    <tr>
+                        <td style="padding-top: 5px;">
+                            <strong style="color: #64748b;">Πληρωμένο:</strong>
+                        </td>
+                        <td style="text-align: right; padding-top: 5px;">
+                            <span style="color: #059669;">-{{formatCurrency invoice.paidAmount}}</span>
+                        </td>
+                    </tr>
+                    {{/if}}
+                    {{#if lateFee}}
+                    <tr>
+                        <td style="padding-top: 5px;">
+                            <strong style="color: #64748b;">Τόκοι υπερημερίας:</strong>
+                        </td>
+                        <td style="text-align: right; padding-top: 5px;">
+                            <span style="color: #dc2626;">+{{formatCurrency lateFee}}</span>
+                        </td>
+                    </tr>
+                    {{/if}}
+                    <tr>
+                        <td style="padding-top: 10px; border-top: 2px solid #e5e7eb;">
+                            <strong style="color: #1f2937; font-size: 16px;">ΟΦΕΙΛΟΜΕΝΟ ΠΟΣΟ:</strong>
+                        </td>
+                        <td style="text-align: right; padding-top: 10px; border-top: 2px solid #e5e7eb;">
+                            <span style="color: {{#if isOverdue}}#dc2626{{else}}#059669{{/if}}; font-size: 24px; font-weight: 700;">
+                                {{formatCurrency outstandingAmount}}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Payment Instructions -->
+            <div style="background-color: #f0fdf4; border: 1px solid #86efac; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                <h3 style="color: #14532d; margin: 0 0 15px 0; font-size: 16px;">💰 Τρόποι Εξόφλησης</h3>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #166534;">1. Τραπεζική Κατάθεση:</strong><br>
+                    <span style="color: #15803d; font-size: 14px;">
+                        {{company.bankName}}<br>
+                        IBAN: <strong>{{company.iban}}</strong><br>
+                        Αιτιολογία: <strong>{{invoice.documentNumber}}</strong>
+                    </span>
+                </div>
+                
+                {{#if invoice.paymentUrl}}
+                <div>
+                    <strong style="color: #166534;">2. Online Πληρωμή:</strong><br>
+                    <span style="color: #15803d; font-size: 14px;">
+                        Πληρώστε άμεσα με κάρτα μέσω του παρακάτω συνδέσμου
+                    </span>
+                </div>
+                {{/if}}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 40px 0;">
+                {{#if invoice.paymentUrl}}
+                <a href="{{invoice.paymentUrl}}" class="button button-primary" style="margin: 0 10px;">
+                    💳 Πληρωμή Τώρα
+                </a>
+                {{/if}}
+                <a href="{{invoice.viewUrl}}" class="button button-secondary" style="margin: 0 10px;">
+                    📄 Προβολή Τιμολογίου
+                </a>
+            </div>
+            
+            <!-- Payment History if exists -->
+            {{#if paymentHistory}}
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 30px 0;">
+                <h4 style="color: #1f2937; margin: 0 0 10px 0; font-size: 14px;">📅 Ιστορικό Πληρωμών</h4>
+                <table width="100%" style="font-size: 14px;">
+                    {{#each paymentHistory}}
+                    <tr>
+                        <td style="padding: 5px 0; color: #64748b;">{{formatDate this.date}}</td>
+                        <td style="text-align: right; color: #059669;">{{formatCurrency this.amount}}</td>
+                    </tr>
+                    {{/each}}
+                </table>
+            </div>
+            {{/if}}
+            
+            <!-- Consequences Warning (for overdue) -->
+            {{#if isOverdue}}
+            {{#if isFinalNotice}}
+            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                <h3 style="color: #991b1b; margin: 0 0 10px 0; font-size: 16px;">
+                    🚨 ΤΕΛΙΚΗ ΕΙΔΟΠΟΙΗΣΗ
+                </h3>
+                <p style="color: #7f1d1d; margin: 0; font-size: 14px; line-height: 1.6;">
+                    Σας ενημερώνουμε ότι αυτή είναι η <strong>τελευταία υπενθύμιση</strong> πριν προβούμε σε:
+                </p>
+                <ul style="color: #7f1d1d; font-size: 14px; margin: 10px 0;">
+                    <li>Αναστολή παροχής υπηρεσιών</li>
+                    <li>Προώθηση σε νομικό τμήμα</li>
+                    <li>Καταχώρηση σε μητρώο οφειλετών</li>
+                </ul>
+                <p style="color: #7f1d1d; margin: 10px 0 0 0; font-size: 14px;">
+                    Παρακαλούμε επικοινωνήστε άμεσα μαζί μας για διευθέτηση.
+                </p>
+            </div>
+            {{/if}}
+            {{/if}}
+            
+            <!-- Contact Support -->
+            <div style="text-align: center; margin: 40px 0; padding: 20px; background-color: #eff6ff; border-radius: 8px;">
+                <h4 style="color: #1e40af; margin: 0 0 10px 0;">💬 Χρειάζεστε βοήθεια;</h4>
+                <p style="color: #3730a3; margin: 0; font-size: 14px; line-height: 1.6;">
+                    Αν αντιμετωπίζετε δυσκολία στην εξόφληση ή έχετε απορίες,<br>
+                    επικοινωνήστε μαζί μας για να βρούμε μια λύση.<br><br>
+                    📞 {{company.phone}} | ✉️ <a href="mailto:{{company.billingEmail}}" style="color: #2563eb;">{{company.billingEmail}}</a>
+                </p>
+            </div>
+            
+            <!-- Reminder Settings -->
+            <p style="text-align: center; color: #6b7280; font-size: 12px; margin-top: 40px;">
+                {{#if reminderCount}}
+                Υπενθύμιση {{reminderCount}} από {{maxReminders}}
+                {{/if}}
+                {{#if nextReminderDate}}
+                | Επόμενη υπενθύμιση: {{formatDate nextReminderDate}}
+                {{/if}}
+            </p>
+            
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0;">
+                {{company.name}} | ΑΦΜ: {{company.vatNumber}}<br>
+                {{company.address}}, {{company.city}} {{company.postalCode}}
+            </p>
+            <p style="margin: 10px 0; font-size: 11px; opacity: 0.8;">
+                Αυτό το email στάλθηκε αυτόματα. Για απορίες επικοινωνήστε μαζί μας.
+            </p>
+            {{#if unsubscribeUrl}}
+            <p style="margin: 10px 0 0 0;">
+                <a href="{{unsubscribeUrl}}" style="color: #6b7280; text-decoration: underline;">
+                    Διακοπή υπενθυμίσεων
+                </a>
+            </p>
+            {{/if}}
+        </div>
+        
+    </div>
+    
+</body>
+</html>

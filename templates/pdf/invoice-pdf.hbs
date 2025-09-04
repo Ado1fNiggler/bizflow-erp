@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <title>{{documentType}} {{document.documentNumber}}</title>
+    <style>
+        /* PDF-specific styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000;
+        }
+        
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+        }
+        
+        /* Header styles */
+        .header {
+            display: table;
+            width: 100%;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        
+        .header-left {
+            display: table-cell;
+            width: 60%;
+            vertical-align: top;
+        }
+        
+        .header-right {
+            display: table-cell;
+            width: 40%;
+            text-align: right;
+            vertical-align: top;
+        }
+        
+        .company-name {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.3;
+        }
+        
+        .document-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+        
+        .document-number {
+            font-size: 11pt;
+            color: #333;
+        }
+        
+        /* Info boxes */
+        .info-section {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            display: table-cell;
+            width: 48%;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+        }
+        
+        .info-box.right {
+            margin-left: 4%;
+        }
+        
+        .info-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .info-content {
+            font-size: 10pt;
+            color: #000;
+            line-height: 1.5;
+        }
+        
+        /* Table styles */
+        .items-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        
+        .items-table th {
+            background-color: #333;
+            color: white;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .items-table th.text-right,
+        .items-table td.text-right {
+            text-align: right;
+        }
+        
+        .items-table th.text-center,
+        .items-table td.text-center {
+            text-align: center;
+        }
+        
+        .items-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 9pt;
+        }
+        
+        .items-table tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .items-table .description {
+            font-weight: 500;
+        }
+        
+        .items-table .item-code {
+            color: #666;
+            font-size: 8pt;
+        }
+        
+        /* Totals section */
+        .totals-section {
+            margin-top: 30px;
+            display: table;
+            width: 100%;
+        }
+        
+        .totals-left {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+        
+        .totals-right {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+        
+        .totals-table {
+            width: 100%;
+            margin-left: auto;
+        }
+        
+        .totals-table tr td {
+            padding: 5px 10px;
+            font-size: 10pt;
+        }
+        
+        .totals-table .label {
+            text-align: right;
+            color: #666;
+        }
+        
+        .totals-table .value {
+            text-align: right;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .totals-table .total-row {
+            background-color: #333;
+            color: white;
+        }
+        
+        .totals-table .total-row td {
+            padding: 10px;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        
+        /* Payment info */
+        .payment-info {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #fff9e6;
+            border: 1px solid #ffd666;
+            border-left: 4px solid #faad14;
+        }
+        
+        .payment-info h3 {
+            font-size: 11pt;
+            margin-bottom: 10px;
+            color: #d48806;
+        }
+        
+        .payment-details {
+            font-size: 9pt;
+            line-height: 1.5;
+        }
+        
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-size: 8pt;
+            color: #666;
+        }
+        
+        .footer-content {
+            display: table;
+            width: 100%;
+        }
+        
+        .footer-left {
+            display: table-cell;
+            width: 33%;
+            text-align: left;
+        }
+        
+        .footer-center {
+            display: table-cell;
+            width: 34%;
+            text-align: center;
+        }
+        
+        .footer-right {
+            display: table-cell;
+            width: 33%;
+            text-align: right;
+        }
+        
+        /* QR Code */
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            margin: 10px 0;
+        }
+        
+        /* Stamps and signatures */
+        .signature-section {
+            margin-top: 50px;
+            display: table;
+            width: 100%;
+        }
+        
+        .signature-box {
+            display: table-cell;
+            width: 45%;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #333;
+            margin: 40px 20px 10px 20px;
+        }
+        
+        .signature-label {
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        /* Notes section */
+        .notes-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .notes-section h4 {
+            font-size: 10pt;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        /* Print specific */
+        @media print {
+            .page {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+        }
+        
+        /* Watermark for draft/cancelled */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120pt;
+            color: rgba(255, 0, 0, 0.1);
+            font-weight: bold;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    
+    {{#if isDraft}}
+    <div class="watermark">ΠΡΟΣΧΕΔΙΟ</div>
+    {{/if}}
+    {{#if isCancelled}}
+    <div class="watermark">ΑΚΥΡΩΜΕΝΟ</div>
+    {{/if}}
+    
+    <div class="page">
+        
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-left">
+                <div class="company-name">{{company.name}}</div>
+                <div class="company-details">
+                    {{#if company.legalName}}{{company.legalName}}<br>{{/if}}
+                    {{company.address}}<br>
+                    {{company.city}}, {{company.postalCode}}<br>
+                    ΑΦΜ: {{company.vatNumber}} | ΔΟΥ: {{company.taxOffice}}<br>
+                    Τηλ: {{company.phone}} | Email: {{company.email}}
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="document-title">{{documentTypeLabel}}</div>
+                <div class="document-number">{{document.series}}/{{document.documentNumber}}</div>
+                <div style="margin-top: 10px; font-size: 9pt;">
+                    Ημερομηνία: <strong>{{formatDate document.date}}</strong><br>
+                    {{#if document.dueDate}}
+                    Λήξη: <strong>{{formatDate document.dueDate}}</strong>
+                    {{/if}}
+                </div>
+                {{#if document.mydataMark}}
+                <div style="margin-top: 10px; font-size: 8pt; color: #666;">
+                    ΜΑΡΚ myDATA: {{document.mydataMark}}
+                </div>
+                {{/if}}
+            </div>
+        </div>
+        
+        <!-- Customer/Supplier Info -->
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-title">{{#if isIncoming}}Προμηθευτής{{else}}Πελάτης{{/if}}</div>
+                <div class="info-content">
+                    <strong>{{customer.name}}</strong><br>
+                    {{#if customer.legalName}}{{customer.legalName}}<br>{{/if}}
+                    {{customer.address}}<br>
+                    {{customer.city}}, {{customer.postalCode}}<br>
+                    ΑΦΜ: {{customer.vatNumber}} | ΔΟΥ: {{customer.taxOffice}}<br>
+                    {{#if customer.phone}}Τηλ: {{customer.phone}}<br>{{/if}}
+                    {{#if customer.email}}Email: {{customer.email}}{{/if}}
+                </div>
+            </div>
+            
+            <div class="info-box right">
+                <div class="info-title">Στοιχεία Παραστατικού</div>
+                <div class="info-content">
+                    Τρόπος Πληρωμής: <strong>{{paymentMethodLabel}}</strong><br>
+                    Όροι Πληρωμής: <strong>{{document.paymentTerms}} ημέρες</strong><br>
+                    {{#if document.orderNumber}}
+                    Αρ. Παραγγελίας: <strong>{{document.orderNumber}}</strong><br>
+                    {{/if}}
+                    {{#if document.contractNumber}}
+                    Αρ. Σύμβασης: <strong>{{document.contractNumber}}</strong><br>
+                    {{/if}}
+                    {{#if document.referenceNumber}}
+                    Σχετικό: <strong>{{document.referenceNumber}}</strong>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">Α/Α</th>
+                    <th style="width: 35%;">Περιγραφή</th>
+                    <th class="text-center" style="width: 8%;">Μον.</th>
+                    <th class="text-right" style="width: 10%;">Ποσ.</th>
+                    <th class="text-right" style="width: 12%;">Τιμή Μον.</th>
+                    <th class="text-right" style="width: 10%;">Έκπτ. %</th>
+                    <th class="text-right" style="width: 8%;">ΦΠΑ %</th>
+                    <th class="text-right" style="width: 12%;">Σύνολο</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td class="text-center">{{this.lineNumber}}</td>
+                    <td>
+                        <div class="description">{{this.description}}</div>
+                        {{#if this.productCode}}
+                        <div class="item-code">Κωδ: {{this.productCode}}</div>
+                        {{/if}}
+                        {{#if this.longDescription}}
+                        <div style="font-size: 8pt; color: #666; margin-top: 3px;">
+                            {{this.longDescription}}
+                        </div>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">{{this.unit}}</td>
+                    <td class="text-right">{{formatNumber this.quantity}}</td>
+                    <td class="text-right">{{formatCurrency this.unitPrice}}</td>
+                    <td class="text-right">{{#if this.discountPercentage}}{{this.discountPercentage}}%{{else}}-{{/if}}</td>
+                    <td class="text-right">{{this.taxRate}}%</td>
+                    <td class="text-right">{{formatCurrency this.totalAmount}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        
+        <!-- Totals Section -->
+        <div class="totals-section">
+            <div class="totals-left">
+                {{#if document.notes}}
+                <div class="notes-section">
+                    <h4>Παρατηρήσεις:</h4>
+                    <p>{{document.notes}}</p>
+                </div>
+                {{/if}}
+                
+                {{#if document.mydataQr}}
+                <div style="margin-top: 20px;">
+                    <img src="{{document.mydataQr}}" class="qr-code" alt="QR Code">
+                    <div style="font-size: 8pt; color: #666;">myDATA QR Code</div>
+                </div>
+                {{/if}}
+            </div>
+            
+            <div class="totals-right">
+                <table class="totals-table">
+                    <tr>
+                        <td class="label">Σύνολο προ εκπτώσεων:</td>
+                        <td class="value">{{formatCurrency totals.subtotal}}</td>
+                    </tr>
+                    {{#if totals.totalDiscount}}
+                    <tr>
+                        <td class="label">Σύνολο εκπτώσεων:</td>
+                        <td class="value">-{{formatCurrency totals.totalDiscount}}</td>
+                    </tr>
+                    {{/if}}
+                    <tr>
+                        <td class="label">Καθαρή Αξία:</td>
+                        <td class="value">{{formatCurrency totals.netAmount}}</td>
+                    </tr>
+                    
+                    <!-- VAT Breakdown -->
+                    {{#each totals.vatBreakdown}}
+                    <tr>
+                        <td class="label">ΦΠΑ {{this.rate}}%:</td>
+                        <td class="value">{{formatCurrency this.amount}}</td>
+                    </tr>
+                    {{/each}}
+                    
+                    {{#if totals.withholdingTax}}
+                    <tr>
+                        <td class="label">Παρακράτηση φόρου:</td>
+                        <td class="value">-{{formatCurrency totals.withholdingTax}}</td>
+                    </tr>
+                    {{/if}}
+                    
+                    {{#if totals.stampDuty}}
+                    <tr>
+                        <td class="label">Χαρτόσημο:</td>
+                        <td class="value">{{formatCurrency totals.stampDuty}}</td>
+                    </tr>
+                    {{/if}}
+                    
+                    <tr class="total-row">
+                        <td>ΣΥΝΟΛΟ ΠΛΗΡΩΤΕΟ:</td>
+                        <td>{{formatCurrency totals.totalAmount}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        {{#unless isPaid}}
+        <div class="payment-info">
+            <h3>Τρόποι Πληρωμής</h3>
+            <div class="payment-details">
+                <strong>Τραπεζική Κατάθεση:</strong><br>
+                Τράπεζα: {{company.bankName}}<br>
+                IBAN: {{company.iban}}<br>
+                Δικαιούχος: {{company.name}}<br>
+                Αιτιολογία: {{document.documentNumber}}
+                
+                {{#if company.acceptsCards}}
+                <br><br>
+                <strong>Κάρτες:</strong> Δεκτές όλες οι πιστωτικές/χρεωστικές κάρτες
+                {{/if}}
+            </div>
+        </div>
+        {{/unless}}
+        
+        <!-- Terms and Conditions -->
+        {{#if document.termsAndConditions}}
+        <div class="notes-section" style="margin-top: 20px;">
+            <h4>Όροι και Προϋποθέσεις:</h4>
+            <p style="font-size: 8pt;">{{document.termsAndConditions}}</p>
+        </div>
+        {{/if}}
+        
+        <!-- Signature Section -->
+        {{#if showSignatures}}
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-label">Ο ΕΚΔΟΤΗΣ</div>
+            </div>
+            <div style="display: table-cell; width: 10%;"></div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-label">Ο ΠΑΡΑΛΑΒΩΝ</div>
+            </div>
+        </div>
+        {{/if}}
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    Σελίδα 1 από 1
+                </div>
+                <div class="footer-center">
+                    {{#if company.website}}
+                    {{company.website}}
+                    {{/if}}
+                </div>
+                <div class="footer-right">
+                    Εκτύπωση: {{formatDateTime printDate}}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</body>
+</html>

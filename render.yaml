@@ -1,0 +1,33 @@
+# Render.com deployment configuration
+databases:
+  - name: bizflow-db
+    plan: free
+    databaseName: bizflow_erp
+    user: bizflow_user
+
+services:
+  - type: web
+    name: bizflow-erp
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bizflow-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+      - key: API_BASE_URL
+        value: https://bizflow-erp.onrender.com
+      - key: CLIENT_URL
+        value: https://bizflow-erp.onrender.com/app
+      - key: CORS_ORIGIN
+        value: https://bizflow-erp.onrender.com
