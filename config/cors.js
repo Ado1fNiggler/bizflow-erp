@@ -34,7 +34,9 @@ const getAllowedOrigins = () => {
       'https://bizflow.gr',
       'https://www.bizflow.gr',
       'https://app.bizflow.gr',
-      'https://api.bizflow.gr'
+      'https://api.bizflow.gr',
+      'https://bizflow-erp.onrender.com', // Render deployment
+      'http://bizflow-erp.onrender.com'   // In case of http
     );
   }
   
