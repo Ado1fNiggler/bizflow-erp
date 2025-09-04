@@ -163,7 +163,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // ============================================
-// Health Check Endpoint
+// Health Check Endpoints
 // ============================================
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -172,6 +172,21 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV,
     version: process.env.npm_package_version || '2.0.0'
+  });
+});
+
+// Also add health check at common API paths
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    message: 'API is running'
+  });
+});
+
+app.get('/api/system/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    message: 'System API is running'
   });
 });
 
