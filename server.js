@@ -20,11 +20,11 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0'; // Use 0.0.0.0 for cloud deployments
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Database sync options
+// Database sync options - safe for production
 const syncOptions = {
-  force: false, // Never drop tables in production
-  alter: true, // Allow altering tables to match models
-  logging: NODE_ENV === 'development' ? console.log : false
+  force: false, // Never drop tables
+  alter: false, // Don't alter existing tables  
+  logging: false // Reduce logs
 };
 
 // Initialize server
@@ -36,13 +36,19 @@ const startServer = async () => {
     
     // Sync database models
     try {
-      await sequelize.sync(syncOptions);
-      logger.info('✅ Database models synchronized');
+      // Check if we should reset the database (ONLY use in development!)
+      if (process.env.RESET_DB === 'true') {
+        logger.warn('⚠️ RESETTING DATABASE - All data will be lost!');
+        await sequelize.sync({ force: true });
+        logger.info('✅ Database reset and recreated');
+      } else {
+        // Normal sync - create tables if they don't exist
+        await sequelize.sync(syncOptions);
+        logger.info('✅ Database models synchronized');
+      }
     } catch (syncError) {
-      logger.error('❌ Database sync failed:', syncError);
-      // Try to create tables without altering
-      await sequelize.sync({ force: false, alter: false });
-      logger.info('✅ Database models created with basic sync');
+      logger.error('❌ Database sync failed:', syncError.message);
+      // Don't try to recover - let it fail so we can see the error
     }
     
     // Start Express server
