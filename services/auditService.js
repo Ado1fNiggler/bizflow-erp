@@ -1,10 +1,11 @@
 // services/auditService.js
 // Service για διαχείριση audit trail και security monitoring
 
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import AuditLog from '../models/AuditLog.js';
 import emailService from './emailService.js';
 import moment from 'moment';
+import sequelize from '../config/database.js';
 
 class AuditService {
   constructor() {

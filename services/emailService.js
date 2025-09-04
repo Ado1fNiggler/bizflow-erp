@@ -7,7 +7,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { logInfo, logError } from '../middleware/logger.js';
+import { logger } from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,13 +51,13 @@ class EmailService {
       // Verify connection
       this.transporter.verify((error, success) => {
         if (error) {
-          logError('Email service initialization failed', error);
+          logger.error('Email service initialization failed', error);
         } else {
-          logInfo('Email service ready');
+          logger.info('Email service ready');
         }
       });
     } catch (error) {
-      logError('Failed to initialize email service', error);
+      logger.error('Failed to initialize email service', error);
     }
   }
 
@@ -81,7 +81,7 @@ class EmailService {
       
       return compiledTemplate;
     } catch (error) {
-      logError(`Failed to load template: ${templateName}`, error);
+      logger.error(`Failed to load template: ${templateName}`, error);
       throw error;
     }
   }
@@ -112,7 +112,7 @@ class EmailService {
 
       const result = await this.transporter.sendMail(mailOptions);
       
-      logInfo('Email sent successfully', {
+      logger.info('Email sent successfully', {
         to,
         subject,
         templateName,
@@ -121,7 +121,7 @@ class EmailService {
       
       return result;
     } catch (error) {
-      logError('Failed to send email', {
+      logger.error('Failed to send email', {
         to,
         subject,
         templateName,
@@ -144,7 +144,7 @@ class EmailService {
 
       const result = await this.transporter.sendMail(mailOptions);
       
-      logInfo('Email sent successfully', {
+      logger.info('Email sent successfully', {
         to,
         subject,
         messageId: result.messageId
@@ -152,7 +152,7 @@ class EmailService {
       
       return result;
     } catch (error) {
-      logError('Failed to send email', {
+      logger.error('Failed to send email', {
         to,
         subject,
         error: error.message
