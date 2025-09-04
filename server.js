@@ -17,13 +17,13 @@ import { logger } from './utils/logger.js';
 
 // Server configuration
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || 'localhost';
+const HOST = process.env.HOST || '0.0.0.0'; // Use 0.0.0.0 for cloud deployments
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Database sync options
 const syncOptions = {
   force: false, // Never drop tables in production
-  alter: NODE_ENV === 'development', // Only alter in development
+  alter: true, // Allow altering tables to match models
   logging: NODE_ENV === 'development' ? console.log : false
 };
 
@@ -35,8 +35,15 @@ const startServer = async () => {
     logger.info('✅ Database connection established successfully');
     
     // Sync database models
-    await sequelize.sync(syncOptions);
-    logger.info('✅ Database models synchronized');
+    try {
+      await sequelize.sync(syncOptions);
+      logger.info('✅ Database models synchronized');
+    } catch (syncError) {
+      logger.error('❌ Database sync failed:', syncError);
+      // Try to create tables without altering
+      await sequelize.sync({ force: false, alter: false });
+      logger.info('✅ Database models created with basic sync');
+    }
     
     // Start Express server
     const server = app.listen(PORT, HOST, () => {
