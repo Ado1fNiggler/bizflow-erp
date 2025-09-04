@@ -114,7 +114,15 @@ app.use(requestLogger);
 // ============================================
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/app', express.static(path.join(__dirname, 'frontend')));
+
+// Serve frontend files
+const frontendPath = path.join(__dirname, 'frontend');
+app.use('/app', express.static(frontendPath));
+
+// Serve index.html for /app route
+app.get('/app', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
 
 // ============================================
 // API Routes
@@ -162,7 +170,8 @@ app.get('/health', (req, res) => {
 // Root Endpoint
 // ============================================
 app.get('/', (req, res) => {
-  res.send('BizFlow ERP is running');
+  // Redirect to the main app
+  res.redirect('/app');
 });
 
 // ============================================
