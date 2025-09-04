@@ -55,9 +55,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      connectSrc: ["'self'", "https://bizflow-erp-45kg.onrender.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -188,6 +190,11 @@ app.get('/api/system/health', (req, res) => {
     status: 'healthy',
     message: 'System API is running'
   });
+});
+
+// Simple favicon handler
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
 });
 
 // ============================================
