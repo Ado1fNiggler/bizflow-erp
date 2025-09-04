@@ -117,23 +117,21 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Serve frontend files
 const frontendPath = path.join(__dirname, 'frontend');
+console.log('Frontend path:', frontendPath);
 
-// Serve static files from frontend directory
-app.use('/app', express.static(frontendPath, {
-  index: 'index.html',
-  fallthrough: false
-}));
-
-// Also serve frontend files at root/app path
-app.get('/app/*', (req, res) => {
-  const filePath = path.join(__dirname, 'frontend', 'index.html');
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('Error serving frontend:', err);
-      res.status(404).send('Frontend not found');
-    }
-  });
+// Serve the frontend app
+app.get('/app', (req, res) => {
+  console.log('Serving /app');
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+
+app.get('/app.js', (req, res) => {
+  console.log('Serving /app.js');
+  res.sendFile(path.join(__dirname, 'frontend', 'app.js'));
+});
+
+// Serve static assets
+app.use(express.static(frontendPath));
 
 // ============================================
 // API Routes
