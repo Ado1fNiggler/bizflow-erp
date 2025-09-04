@@ -3,7 +3,7 @@
 
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
-import { logger } from '../middleware/logger.js';
+import { logger } from '../utils/logger.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
