@@ -51,17 +51,9 @@ app.set('trust proxy', 1);
 // ============================================
 // Security Middleware
 // ============================================
+// Disable CSP temporarily for development
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-      connectSrc: ["'self'", "https://bizflow-erp-45kg.onrender.com"],
-    },
-  },
+  contentSecurityPolicy: false, // Disable CSP completely for now
   crossOriginEmbedderPolicy: false,
 }));
 
