@@ -881,11 +881,19 @@ app.get('/', (req, res) => {
             });
             event?.target.classList.add('active');
             
-            // Load section specific data
-            if (sectionName === 'companies') {
-                loadCompanies();
-            } else if (sectionName === 'invoices') {
-                loadInvoices();
+            // Load section specific data only if logged in
+            if (currentToken) {
+                if (sectionName === 'companies') {
+                    loadCompanies();
+                } else if (sectionName === 'invoices') {
+                    loadInvoices();
+                }
+            } else {
+                // Redirect to dashboard if not logged in
+                if (sectionName !== 'dashboard') {
+                    showSection('dashboard');
+                    return;
+                }
             }
         }
 
@@ -1116,7 +1124,7 @@ app.get('/', (req, res) => {
         }
 
         function viewCompany(companyId) {
-            alert('Λειτουργία προβολής λεπτομερειών σε ανάπτυξη για κατάστημα: ' + companyId);
+            alert('Προβολή λεπτομερειών καταστήματος: ' + companyId + ' (Σύντομα διαθέσιμο)');
         }
 
         function refreshCompanies() {
@@ -1446,11 +1454,11 @@ app.get('/', (req, res) => {
         }
 
         function editInvoice(invoiceId) {
-            alert('Λειτουργία επεξεργασίας τιμολογίου σε ανάπτυξη για ID: ' + invoiceId);
+            alert('Επεξεργασία τιμολογίου: ' + invoiceId + ' (Σύντομα διαθέσιμο)');
         }
 
         function viewInvoice(invoiceId) {
-            alert('Λειτουργία προβολής τιμολογίου σε ανάπτυξη για ID: ' + invoiceId);
+            alert('Προβολή τιμολογίου: ' + invoiceId + ' (Σύντομα διαθέσιμο)');
         }
 
         function showInvoicesLoading(show) {
