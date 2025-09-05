@@ -341,11 +341,345 @@ router.delete('/companies/:id', async (req, res) => {
   }
 });
 
+// Invoice Management
+const INVOICES_FILE = path.join(__dirname, '../data/invoices.json');
+
+// Load invoices from file
+async function loadInvoices() {
+  try {
+    await ensureDataDir();
+    const data = await fs.readFile(INVOICES_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+// Save invoices to file
+async function saveInvoices(invoices) {
+  await ensureDataDir();
+  await fs.writeFile(INVOICES_FILE, JSON.stringify(invoices, null, 2));
+}
+
+// Generate invoice number
+function generateInvoiceNumber(invoices) {
+  const currentYear = new Date().getFullYear();
+  const yearPrefix = currentYear.toString();
+  
+  // Find highest number for current year
+  const yearInvoices = invoices.filter(inv => 
+    inv.invoiceNumber && inv.invoiceNumber.startsWith(yearPrefix)
+  );
+  
+  let maxNumber = 0;
+  yearInvoices.forEach(inv => {
+    const numberPart = inv.invoiceNumber.replace(yearPrefix + '-', '');
+    const num = parseInt(numberPart);
+    if (num > maxNumber) maxNumber = num;
+  });
+  
+  return `${yearPrefix}-${(maxNumber + 1).toString().padStart(6, '0')}`;
+}
+
+// GET invoices
 router.get('/invoices', async (req, res) => {
   try {
+    const invoices = await loadInvoices();
+    const companies = await loadCompanies();
+    
+    // Add company info to invoices
+    const invoicesWithCompany = invoices.map(invoice => {
+      const company = companies.find(c => c.id === invoice.companyId);
+      return {
+        ...invoice,
+        companyName: company ? company.name : 'Άγνωστη Εταιρεία'
+      };
+    });
+    
     res.json({
       success: true,
-      invoices: []
+      data: invoicesWithCompany,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: invoices.length,
+        pages: 1
+      },
+      stats: {
+        total: invoices.length,
+        draft: invoices.filter(i => i.status === 'draft').length,
+        sent: invoices.filter(i => i.status === 'sent').length,
+        paid: invoices.filter(i => i.status === 'paid').length,
+        totalAmount: invoices.reduce((sum, i) => sum + (parseFloat(i.totalAmount) || 0), 0)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// POST invoices - create new invoice
+router.post('/invoices', async (req, res) => {
+  try {
+    const { 
+      companyId, 
+      type = 'invoice', 
+      issueDate, 
+      dueDate, 
+      items = [], 
+      notes, 
+      vatCategory = 'normal',
+      paymentMethod 
+    } = req.body;
+    
+    // Basic validation
+    if (!companyId || !issueDate || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Εταιρεία, ημερομηνία έκδοσης και προϊόντα είναι υποχρεωτικά'
+      });
+    }
+
+    // Validate items
+    for (const item of items) {
+      if (!item.description || !item.quantity || !item.unitPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Όλα τα προϊόντα πρέπει να έχουν περιγραφή, ποσότητα και τιμή'
+        });
+      }
+    }
+
+    const invoices = await loadInvoices();
+    const companies = await loadCompanies();
+    
+    // Check if company exists
+    const company = companies.find(c => c.id === companyId);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        error: 'Η επιλεγμένη εταιρεία δεν υπάρχει'
+      });
+    }
+
+    // Calculate totals
+    let subtotal = 0;
+    const processedItems = items.map(item => {
+      const lineTotal = parseFloat(item.quantity) * parseFloat(item.unitPrice);
+      subtotal += lineTotal;
+      
+      return {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        description: item.description,
+        quantity: parseFloat(item.quantity),
+        unitPrice: parseFloat(item.unitPrice),
+        vatCategory: item.vatCategory || 'normal',
+        vatRate: getVatRate(item.vatCategory || 'normal'),
+        lineTotal: lineTotal,
+        vatAmount: lineTotal * (getVatRate(item.vatCategory || 'normal') / 100)
+      };
+    });
+
+    const totalVatAmount = processedItems.reduce((sum, item) => sum + item.vatAmount, 0);
+    const totalAmount = subtotal + totalVatAmount;
+
+    const newInvoice = {
+      id: Date.now().toString(),
+      invoiceNumber: generateInvoiceNumber(invoices),
+      type: type,
+      companyId: companyId,
+      issueDate: issueDate,
+      dueDate: dueDate,
+      items: processedItems,
+      subtotal: subtotal,
+      vatAmount: totalVatAmount,
+      totalAmount: totalAmount,
+      currency: 'EUR',
+      vatCategory: vatCategory,
+      paymentMethod: paymentMethod || null,
+      status: 'draft',
+      notes: notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    invoices.push(newInvoice);
+    await saveInvoices(invoices);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...newInvoice,
+        companyName: company.name
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to get VAT rate
+function getVatRate(category) {
+  switch (category) {
+    case 'normal': return 24;
+    case 'reduced': return 13;
+    case 'super_reduced': return 6;
+    case 'exempt': return 0;
+    case 'reverse': return 0;
+    default: return 24;
+  }
+}
+
+// PUT invoices/:id - update invoice
+router.put('/invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invoices = await loadInvoices();
+    const invoiceIndex = invoices.findIndex(i => i.id === id);
+    
+    if (invoiceIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Δεν βρέθηκε το τιμολόγιο'
+      });
+    }
+
+    const invoice = invoices[invoiceIndex];
+    
+    // Only allow editing draft invoices
+    if (invoice.status !== 'draft') {
+      return res.status(400).json({
+        success: false,
+        error: 'Μόνο τα πρόχειρα τιμολόγια μπορούν να επεξεργαστούν'
+      });
+    }
+
+    // Update invoice
+    const updatedInvoice = {
+      ...invoice,
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Recalculate totals if items changed
+    if (req.body.items) {
+      let subtotal = 0;
+      const processedItems = req.body.items.map(item => {
+        const lineTotal = parseFloat(item.quantity) * parseFloat(item.unitPrice);
+        subtotal += lineTotal;
+        
+        return {
+          ...item,
+          lineTotal: lineTotal,
+          vatAmount: lineTotal * (getVatRate(item.vatCategory || 'normal') / 100)
+        };
+      });
+
+      const totalVatAmount = processedItems.reduce((sum, item) => sum + item.vatAmount, 0);
+      const totalAmount = subtotal + totalVatAmount;
+
+      updatedInvoice.items = processedItems;
+      updatedInvoice.subtotal = subtotal;
+      updatedInvoice.vatAmount = totalVatAmount;
+      updatedInvoice.totalAmount = totalAmount;
+    }
+
+    invoices[invoiceIndex] = updatedInvoice;
+    await saveInvoices(invoices);
+
+    res.json({
+      success: true,
+      data: updatedInvoice
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// DELETE invoices/:id
+router.delete('/invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invoices = await loadInvoices();
+    const invoiceIndex = invoices.findIndex(i => i.id === id);
+    
+    if (invoiceIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Δεν βρέθηκε το τιμολόγιο'
+      });
+    }
+
+    const invoice = invoices[invoiceIndex];
+    
+    // Only allow deleting draft invoices
+    if (invoice.status !== 'draft') {
+      return res.status(400).json({
+        success: false,
+        error: 'Μόνο τα πρόχειρα τιμολόγια μπορούν να διαγραφούν'
+      });
+    }
+
+    invoices.splice(invoiceIndex, 1);
+    await saveInvoices(invoices);
+
+    res.json({
+      success: true,
+      message: 'Το τιμολόγιο διαγράφηκε επιτυχώς'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// PUT invoices/:id/status - update invoice status
+router.put('/invoices/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!['draft', 'sent', 'paid', 'overdue', 'cancelled'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Μη έγκυρη κατάσταση τιμολογίου'
+      });
+    }
+
+    const invoices = await loadInvoices();
+    const invoiceIndex = invoices.findIndex(i => i.id === id);
+    
+    if (invoiceIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Δεν βρέθηκε το τιμολόγιο'
+      });
+    }
+
+    invoices[invoiceIndex].status = status;
+    invoices[invoiceIndex].updatedAt = new Date().toISOString();
+    
+    if (status === 'sent') {
+      invoices[invoiceIndex].sentAt = new Date().toISOString();
+    } else if (status === 'paid') {
+      invoices[invoiceIndex].paidAt = new Date().toISOString();
+    }
+
+    await saveInvoices(invoices);
+
+    res.json({
+      success: true,
+      data: invoices[invoiceIndex]
     });
   } catch (error) {
     res.status(500).json({

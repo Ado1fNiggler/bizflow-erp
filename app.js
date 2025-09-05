@@ -281,6 +281,7 @@ app.get('/', (req, res) => {
                 <nav class="nav flex-column p-3">
                     <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
                     <a class="nav-link" href="#" onclick="showSection('companies')"><i class="bi bi-building me-2"></i>Εταιρείες</a>
+                    <a class="nav-link" href="#" onclick="showSection('invoices')"><i class="bi bi-receipt me-2"></i>Τιμολόγια</a>
                 </nav>
             </div>
             <div class="col-md-10 content-area">
@@ -293,6 +294,33 @@ app.get('/', (req, res) => {
                                     <i class="bi bi-building text-primary fs-1"></i>
                                     <div class="stats-number" id="companiesCount">0</div>
                                     <div class="text-muted">Εταιρείες</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-receipt text-success fs-1"></i>
+                                    <div class="stats-number" id="invoicesCount">0</div>
+                                    <div class="text-muted">Τιμολόγια</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-currency-euro text-warning fs-1"></i>
+                                    <div class="stats-number" id="totalRevenue">€0</div>
+                                    <div class="text-muted">Συνολικά Έσοδα</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-clock text-info fs-1"></i>
+                                    <div class="stats-number" id="pendingInvoices">0</div>
+                                    <div class="text-muted">Εκκρεμείς</div>
                                 </div>
                             </div>
                         </div>
@@ -367,6 +395,90 @@ app.get('/', (req, res) => {
                                         <tr>
                                             <td colspan="8" class="text-center text-muted p-4">
                                                 Δεν βρέθηκαν καταστήματα
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoices Section -->
+                <div id="invoicesSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-receipt me-2"></i>Τιμολόγια</h2>
+                        <button class="btn btn-primary" onclick="showAddInvoiceModal()">
+                            <i class="bi bi-plus me-2"></i>Νέο Τιμολόγιο
+                        </button>
+                    </div>
+                    
+                    <!-- Search and Filters -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control" id="invoiceSearch" 
+                                               placeholder="Αναζήτηση τιμολογίου">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="invoiceStatusFilter">
+                                        <option value="">Όλες οι καταστάσεις</option>
+                                        <option value="draft">Πρόχειρο</option>
+                                        <option value="sent">Απεσταλμένο</option>
+                                        <option value="paid">Πληρωμένο</option>
+                                        <option value="overdue">Ληξιπρόθεσμο</option>
+                                        <option value="cancelled">Ακυρωμένο</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="invoiceCompanyFilter">
+                                        <option value="">Όλες οι εταιρείες</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-outline-primary" onclick="refreshInvoices()">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Ανανέωση
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoices Table -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Λίστα Τιμολογίων</h5>
+                            <small class="text-muted" id="invoicesCountText">0 τιμολόγια</small>
+                        </div>
+                        <div class="card-body">
+                            <div id="invoicesLoading" style="display: none;" class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Φόρτωση...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="invoicesTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Αριθμός</th>
+                                            <th>Εταιρεία</th>
+                                            <th>Ημερομηνία</th>
+                                            <th>Λήξη</th>
+                                            <th>Σύνολο</th>
+                                            <th>ΦΠΑ</th>
+                                            <th>Κατάσταση</th>
+                                            <th>Ενέργειες</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoicesTableBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted p-4">
+                                                Δεν βρέθηκαν τιμολόγια
                                             </td>
                                         </tr>
                                     </tbody>
@@ -524,6 +636,154 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
+    <!-- Invoice Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="invoiceModalTitle">Νέο Τιμολόγιο</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="invoiceForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2 mb-3">Βασικά Στοιχεία</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="invoiceCompany" class="form-label">Εταιρεία *</label>
+                                            <select class="form-select" id="invoiceCompany" required>
+                                                <option value="">Επιλέξτε εταιρεία</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="invoiceType" class="form-label">Τύπος</label>
+                                            <select class="form-select" id="invoiceType">
+                                                <option value="invoice">Τιμολόγιο</option>
+                                                <option value="credit_note">Πιστωτικό</option>
+                                                <option value="debit_note">Χρεωστικό</option>
+                                                <option value="receipt">Απόδειξη</option>
+                                                <option value="proforma">Προφορμά</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="invoiceIssueDate" class="form-label">Ημερομηνία Έκδοσης *</label>
+                                            <input type="date" class="form-control" id="invoiceIssueDate" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="invoiceDueDate" class="form-label">Ημερομηνία Λήξης</label>
+                                            <input type="date" class="form-control" id="invoiceDueDate">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="invoicePaymentMethod" class="form-label">Τρόπος Πληρωμής</label>
+                                    <select class="form-select" id="invoicePaymentMethod">
+                                        <option value="">Επιλέξτε τρόπο</option>
+                                        <option value="cash">Μετρητά</option>
+                                        <option value="card">Κάρτα</option>
+                                        <option value="bank_transfer">Τραπεζική Μεταφορά</option>
+                                        <option value="check">Επιταγή</option>
+                                        <option value="other">Άλλο</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="invoiceNotes" class="form-label">Σημειώσεις</label>
+                                    <textarea class="form-control" id="invoiceNotes" rows="3"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="border-bottom pb-2 mb-3">Προϊόντα/Υπηρεσίες</h6>
+                                <div id="invoiceItems">
+                                    <div class="item-row border p-3 mb-3 rounded">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Περιγραφή *</label>
+                                                    <input type="text" class="form-control item-description" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Ποσότητα *</label>
+                                                    <input type="number" class="form-control item-quantity" min="0.01" step="0.01" value="1" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Τιμή *</label>
+                                                    <input type="number" class="form-control item-price" min="0" step="0.01" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="mb-2">
+                                                    <label class="form-label">ΦΠΑ</label>
+                                                    <select class="form-select item-vat">
+                                                        <option value="normal">24%</option>
+                                                        <option value="reduced">13%</option>
+                                                        <option value="super_reduced">6%</option>
+                                                        <option value="exempt">0%</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Σύνολο</label>
+                                                    <input type="text" class="form-control item-total" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-item">
+                                            <i class="bi bi-trash"></i> Αφαίρεση
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mb-3" onclick="addInvoiceItem()">
+                                    <i class="bi bi-plus"></i> Προσθήκη Προϊόντος
+                                </button>
+                                
+                                <!-- Totals -->
+                                <div class="border-top pt-3">
+                                    <div class="row">
+                                        <div class="col-6"><strong>Υποσύνολο:</strong></div>
+                                        <div class="col-6 text-end" id="invoiceSubtotal">€0.00</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6"><strong>ΦΠΑ:</strong></div>
+                                        <div class="col-6 text-end" id="invoiceVat">€0.00</div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-6"><strong>ΣΥΝΟΛΟ:</strong></div>
+                                        <div class="col-6 text-end"><strong id="invoiceTotal">€0.00</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Άκυρο</button>
+                    <button type="button" class="btn btn-primary" onclick="saveInvoice()" id="saveInvoiceBtn">
+                        <i class="bi bi-check me-2"></i>Αποθήκευση
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_BASE = window.location.origin + '/api/v1';
@@ -611,7 +871,7 @@ app.get('/', (req, res) => {
         }
 
         function showSection(sectionName) {
-            const sections = ['dashboard', 'companies'];
+            const sections = ['dashboard', 'companies', 'invoices'];
             sections.forEach(section => {
                 document.getElementById(section + 'Section').style.display = 'none';
             });
@@ -624,15 +884,29 @@ app.get('/', (req, res) => {
             // Load section specific data
             if (sectionName === 'companies') {
                 loadCompanies();
+            } else if (sectionName === 'invoices') {
+                loadInvoices();
             }
         }
 
         async function loadDashboardData() {
             try {
-                const response = await fetch(API_BASE + '/simple/companies');
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('companiesCount').textContent = data.data?.length || 0;
+                // Load companies count
+                const companiesResponse = await fetch(API_BASE + '/simple/companies');
+                if (companiesResponse.ok) {
+                    const companiesData = await companiesResponse.json();
+                    document.getElementById('companiesCount').textContent = companiesData.data?.length || 0;
+                }
+
+                // Load invoices count  
+                const invoicesResponse = await fetch('/api/invoices', {
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken
+                    }
+                });
+                if (invoicesResponse.ok) {
+                    const invoicesData = await invoicesResponse.json();
+                    document.getElementById('invoicesCount').textContent = invoicesData.length || 0;
                 }
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -665,56 +939,55 @@ app.get('/', (req, res) => {
             const tbody = document.getElementById('companiesTableBody');
             
             if (!companies || companies.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center text-muted p-4">
-                            <i class="bi bi-building fs-1 d-block mb-2"></i>
-                            Δεν υπάρχουν καταστήματα
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = 
+                    '<tr>' +
+                        '<td colspan="8" class="text-center text-muted p-4">' +
+                            '<i class="bi bi-building fs-1 d-block mb-2"></i>' +
+                            'Δεν υπάρχουν καταστήματα' +
+                        '</td>' +
+                    '</tr>';
                 return;
             }
 
-            tbody.innerHTML = companies.map(company => `
-                <tr>
-                    <td>
-                        <strong>${escapeHtml(company.name)}</strong>
-                        ${company.legalName && company.legalName !== company.name ? 
-                            '<br><small class="text-muted">' + escapeHtml(company.legalName) + '</small>' : ''}
-                    </td>
-                    <td><code>${company.afm || '-'}</code></td>
-                    <td><span class="badge bg-light text-dark">${company.businessType || 'Ατομική'}</span></td>
-                    <td>
-                        ${company.email ? '<a href="mailto:' + company.email + '">' + escapeHtml(company.email) + '</a>' : '-'}
-                    </td>
-                    <td>
-                        ${company.phone ? '<a href="tel:' + company.phone + '">' + escapeHtml(company.phone) + '</a>' : '-'}
-                    </td>
-                    <td>${escapeHtml(company.city) || '-'}</td>
-                    <td>
-                        <span class="badge ${company.isActive ? 'bg-success' : 'bg-secondary'}">
-                            ${company.isActive ? 'Ενεργό' : 'Ανενεργό'}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" onclick="editCompany('${company.id}')" 
-                                    title="Επεξεργασία">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-outline-info" onclick="viewCompany('${company.id}')" 
-                                    title="Προβολή">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-outline-danger" onclick="deleteCompany('${company.id}', '${escapeHtml(company.name)}')" 
-                                    title="Διαγραφή">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = companies.map(company => 
+                '<tr>' +
+                    '<td>' +
+                        '<strong>' + escapeHtml(company.name) + '</strong>' +
+                        (company.legalName && company.legalName !== company.name ? 
+                            '<br><small class="text-muted">' + escapeHtml(company.legalName) + '</small>' : '') +
+                    '</td>' +
+                    '<td><code>' + (company.afm || '-') + '</code></td>' +
+                    '<td><span class="badge bg-light text-dark">' + (company.businessType || 'Ατομική') + '</span></td>' +
+                    '<td>' +
+                        (company.email ? '<a href="mailto:' + company.email + '">' + escapeHtml(company.email) + '</a>' : '-') +
+                    '</td>' +
+                    '<td>' +
+                        (company.phone ? '<a href="tel:' + company.phone + '">' + escapeHtml(company.phone) + '</a>' : '-') +
+                    '</td>' +
+                    '<td>' + (escapeHtml(company.city) || '-') + '</td>' +
+                    '<td>' +
+                        '<span class="badge ' + (company.isActive ? 'bg-success' : 'bg-secondary') + '">' +
+                            (company.isActive ? 'Ενεργό' : 'Ανενεργό') +
+                        '</span>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="btn-group btn-group-sm">' +
+                            '<button class="btn btn-outline-primary" onclick="editCompany(\'' + company.id + '\')" ' +
+                                    'title="Επεξεργασία">' +
+                                '<i class="bi bi-pencil"></i>' +
+                            '</button>' +
+                            '<button class="btn btn-outline-info" onclick="viewCompany(\'' + company.id + '\')" ' +
+                                    'title="Προβολή">' +
+                                '<i class="bi bi-eye"></i>' +
+                            '</button>' +
+                            '<button class="btn btn-outline-danger" onclick="deleteCompany(\'' + company.id + '\', \'' + escapeHtml(company.name) + '\')" ' +
+                                    'title="Διαγραφή">' +
+                                '<i class="bi bi-trash"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            ).join('');
         }
 
         function showAddCompanyModal() {
@@ -858,12 +1131,376 @@ app.get('/', (req, res) => {
             document.getElementById('companiesCount').textContent = count + ' καταστήματα';
         }
 
+        // ======================
+        // Invoice Management Functions
+        // ======================
+        
+        async function loadInvoices() {
+            try {
+                showInvoicesLoading(true);
+                
+                const response = await fetch('/api/invoices', {
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Αποτυχία φόρτωσης τιμολογίων');
+                }
+                
+                const invoices = await response.json();
+                displayInvoices(invoices);
+                updateInvoicesCount(invoices.length);
+                
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                showError('Σφάλμα δικτύου: ' + error.message);
+            } finally {
+                showInvoicesLoading(false);
+            }
+        }
+
+        function displayInvoices(invoices) {
+            const tbody = document.getElementById('invoicesTableBody');
+            
+            if (!invoices || invoices.length === 0) {
+                tbody.innerHTML = 
+                    '<tr>' +
+                        '<td colspan="8" class="text-center text-muted p-4">' +
+                            'Δεν βρέθηκαν τιμολόγια' +
+                        '</td>' +
+                    '</tr>';
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(invoice => 
+                '<tr>' +
+                    '<td><strong>' + escapeHtml(invoice.invoiceNumber) + '</strong></td>' +
+                    '<td>' + escapeHtml(invoice.companyName || '-') + '</td>' +
+                    '<td>' + formatDate(invoice.issueDate) + '</td>' +
+                    '<td>' + (formatDate(invoice.dueDate) || '-') + '</td>' +
+                    '<td>€' + formatCurrency(invoice.total) + '</td>' +
+                    '<td>€' + formatCurrency(invoice.vatAmount) + '</td>' +
+                    '<td>' +
+                        '<span class="badge bg-' + getStatusColor(invoice.status) + '">' +
+                            getStatusText(invoice.status) +
+                        '</span>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="btn-group btn-group-sm">' +
+                            '<button class="btn btn-outline-primary" onclick="viewInvoice(\'' + invoice.id + '\')" title="Προβολή">' +
+                                '<i class="bi bi-eye"></i>' +
+                            '</button>' +
+                            '<button class="btn btn-outline-info" onclick="editInvoice(\'' + invoice.id + '\')" title="Επεξεργασία">' +
+                                '<i class="bi bi-pencil"></i>' +
+                            '</button>' +
+                            '<button class="btn btn-outline-danger" onclick="deleteInvoice(\'' + invoice.id + '\', \'' + escapeHtml(invoice.invoiceNumber) + '\')" title="Διαγραφή">' +
+                                '<i class="bi bi-trash"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            ).join('');
+        }
+
+        async function showAddInvoiceModal() {
+            // Load companies first
+            await loadCompaniesForSelect();
+            
+            document.getElementById('invoiceModalTitle').textContent = 'Νέο Τιμολόγιο';
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('invoiceIssueDate').value = new Date().toISOString().split('T')[0];
+            
+            // Reset items
+            resetInvoiceItems();
+            
+            const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+            modal.show();
+        }
+
+        async function loadCompaniesForSelect() {
+            try {
+                const response = await fetch('/api/companies', {
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Αποτυχία φόρτωσης εταιρειών');
+                
+                const companies = await response.json();
+                const companySelects = [
+                    document.getElementById('invoiceCompany'),
+                    document.getElementById('invoiceCompanyFilter')
+                ];
+                
+                companySelects.forEach(select => {
+                    if (select) {
+                        const currentValue = select.value;
+                        select.innerHTML = '<option value="">Επιλέξτε εταιρεία</option>';
+                        companies.forEach(company => {
+                            select.innerHTML += '<option value="' + company.id + '">' + escapeHtml(company.name) + '</option>';
+                        });
+                        if (currentValue) select.value = currentValue;
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading companies for select:', error);
+            }
+        }
+
+        function addInvoiceItem() {
+            const itemsContainer = document.getElementById('invoiceItems');
+            const itemIndex = itemsContainer.children.length;
+            
+            const itemHTML = 
+                '<div class="item-row border p-3 mb-3 rounded">' +
+                    '<div class="row">' +
+                        '<div class="col-md-12">' +
+                            '<div class="row">' +
+                                '<div class="col-md-6">' +
+                                    '<label class="form-label">Περιγραφή *</label>' +
+                                    '<input type="text" class="form-control item-description" required ' +
+                                           'placeholder="π.χ. Προϊόν A" onchange="calculateInvoiceTotals()">' +
+                                '</div>' +
+                                '<div class="col-md-2">' +
+                                    '<label class="form-label">Ποσότητα *</label>' +
+                                    '<input type="number" class="form-control item-quantity" value="1" min="0" step="0.01" ' +
+                                           'required onchange="calculateInvoiceTotals()">' +
+                                '</div>' +
+                                '<div class="col-md-2">' +
+                                    '<label class="form-label">Τιμή *</label>' +
+                                    '<input type="number" class="form-control item-price" value="0" min="0" step="0.01" ' +
+                                           'required onchange="calculateInvoiceTotals()">' +
+                                '</div>' +
+                                '<div class="col-md-2">' +
+                                    '<label class="form-label">ΦΠΑ %</label>' +
+                                    '<select class="form-select item-vat" onchange="calculateInvoiceTotals()">' +
+                                        '<option value="24">24%</option>' +
+                                        '<option value="13">13%</option>' +
+                                        '<option value="6">6%</option>' +
+                                        '<option value="0">0%</option>' +
+                                    '</select>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="row mt-2">' +
+                                '<div class="col-md-10">' +
+                                    '<small class="text-muted">Σύνολο γραμμής: €<span class="item-total">0.00</span></small>' +
+                                '</div>' +
+                                '<div class="col-md-2 text-end">' +
+                                    '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeInvoiceItem(this)">' +
+                                        '<i class="bi bi-trash"></i>' +
+                                    '</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            
+            itemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+            calculateInvoiceTotals();
+        }
+
+        function removeInvoiceItem(button) {
+            const itemRow = button.closest('.item-row');
+            itemRow.remove();
+            calculateInvoiceTotals();
+        }
+
+        function resetInvoiceItems() {
+            const itemsContainer = document.getElementById('invoiceItems');
+            itemsContainer.innerHTML = '';
+            addInvoiceItem(); // Add first item
+        }
+
+        function calculateInvoiceTotals() {
+            const items = document.querySelectorAll('.item-row');
+            let subtotal = 0;
+            let totalVat = 0;
+            
+            items.forEach(item => {
+                const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(item.querySelector('.item-price').value) || 0;
+                const vatRate = parseFloat(item.querySelector('.item-vat').value) || 0;
+                
+                const itemSubtotal = quantity * price;
+                const itemVat = itemSubtotal * (vatRate / 100);
+                const itemTotal = itemSubtotal + itemVat;
+                
+                subtotal += itemSubtotal;
+                totalVat += itemVat;
+                
+                item.querySelector('.item-total').textContent = formatCurrency(itemTotal);
+            });
+            
+            const total = subtotal + totalVat;
+            
+            document.getElementById('invoiceSubtotal').textContent = '€' + formatCurrency(subtotal);
+            document.getElementById('invoiceVat').textContent = '€' + formatCurrency(totalVat);
+            document.getElementById('invoiceTotal').textContent = '€' + formatCurrency(total);
+        }
+
+        async function saveInvoice() {
+            try {
+                const form = document.getElementById('invoiceForm');
+                const formData = new FormData(form);
+                
+                // Collect items data
+                const items = [];
+                document.querySelectorAll('.item-row').forEach(itemRow => {
+                    const description = itemRow.querySelector('.item-description').value;
+                    const quantity = parseFloat(itemRow.querySelector('.item-quantity').value);
+                    const price = parseFloat(itemRow.querySelector('.item-price').value);
+                    const vatRate = parseFloat(itemRow.querySelector('.item-vat').value);
+                    
+                    if (description && quantity > 0 && price >= 0) {
+                        items.push({
+                            description,
+                            quantity,
+                            price,
+                            vatRate,
+                            subtotal: quantity * price,
+                            vatAmount: (quantity * price) * (vatRate / 100),
+                            total: (quantity * price) * (1 + vatRate / 100)
+                        });
+                    }
+                });
+                
+                if (items.length === 0) {
+                    showError('Προσθέστε τουλάχιστον ένα προϊόν στο τιμολόγιο');
+                    return;
+                }
+                
+                // Calculate totals
+                const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
+                const vatAmount = items.reduce((sum, item) => sum + item.vatAmount, 0);
+                const total = subtotal + vatAmount;
+                
+                const invoiceData = {
+                    companyId: document.getElementById('invoiceCompany').value,
+                    type: document.getElementById('invoiceType').value,
+                    issueDate: document.getElementById('invoiceIssueDate').value,
+                    dueDate: document.getElementById('invoiceDueDate').value,
+                    paymentMethod: document.getElementById('invoicePaymentMethod').value,
+                    notes: document.getElementById('invoiceNotes').value,
+                    items: items,
+                    subtotal: subtotal,
+                    vatAmount: vatAmount,
+                    total: total,
+                    status: 'draft'
+                };
+                
+                const response = await fetch('/api/invoices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + currentToken
+                    },
+                    body: JSON.stringify(invoiceData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Αποτυχία αποθήκευσης τιμολογίου');
+                }
+                
+                const savedInvoice = await response.json();
+                showSuccess('Το τιμολόγιο αποθηκεύτηκε επιτυχώς!');
+                
+                // Close modal and refresh
+                const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceModal'));
+                modal.hide();
+                loadInvoices();
+                
+            } catch (error) {
+                console.error('Error saving invoice:', error);
+                showError('Σφάλμα αποθήκευσης: ' + error.message);
+            }
+        }
+
+        async function deleteInvoice(invoiceId, invoiceNumber) {
+            if (!confirm('Θέλετε να διαγράψετε το τιμολόγιο "' + invoiceNumber + '";')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/invoices/' + invoiceId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Αποτυχία διαγραφής τιμολογίου');
+                }
+                
+                showSuccess('Το τιμολόγιο διαγράφηκε επιτυχώς!');
+                loadInvoices();
+                
+            } catch (error) {
+                console.error('Error deleting invoice:', error);
+                showError('Σφάλμα δικτύου: ' + error.message);
+            }
+        }
+
+        function editInvoice(invoiceId) {
+            alert('Λειτουργία επεξεργασίας τιμολογίου σε ανάπτυξη για ID: ' + invoiceId);
+        }
+
+        function viewInvoice(invoiceId) {
+            alert('Λειτουργία προβολής τιμολογίου σε ανάπτυξη για ID: ' + invoiceId);
+        }
+
+        function showInvoicesLoading(show) {
+            document.getElementById('invoicesLoading').style.display = show ? 'block' : 'none';
+        }
+
+        function updateInvoicesCount(count) {
+            document.getElementById('invoicesCountText').textContent = count + ' τιμολόγια';
+            document.getElementById('invoicesCount').textContent = count;
+        }
+
         // Utility Functions
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('el-GR');
+        }
+
+        function formatCurrency(amount) {
+            if (!amount) return '0.00';
+            return parseFloat(amount).toFixed(2);
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'draft': return 'secondary';
+                case 'sent': return 'primary';
+                case 'paid': return 'success';
+                case 'overdue': return 'danger';
+                case 'cancelled': return 'dark';
+                default: return 'light';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'draft': return 'Πρόχειρο';
+                case 'sent': return 'Απεσταλμένο';
+                case 'paid': return 'Πληρωμένο';
+                case 'overdue': return 'Ληξιπρόθεσμο';
+                case 'cancelled': return 'Ακυρωμένο';
+                default: return status;
+            }
         }
 
         function showSuccess(message) {
@@ -908,7 +1545,7 @@ app.use((req, res, next) => {
 
   res.status(404).json({
     error: 'Not Found',
-    message: `Cannot ${req.method} ${req.path}`,
+    message: 'Cannot ' + req.method + ' ' + req.path,
     statusCode: 404
   });
 });
