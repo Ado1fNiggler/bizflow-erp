@@ -170,12 +170,168 @@ router.get('/simple-users', async (req, res) => {
 });
 
 // Simple file-based data endpoints (no authentication for simplicity)
+const COMPANIES_FILE = path.join(__dirname, '../data/companies.json');
+
+// Load companies from file
+async function loadCompanies() {
+  try {
+    await ensureDataDir();
+    const data = await fs.readFile(COMPANIES_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+// Save companies to file
+async function saveCompanies(companies) {
+  await ensureDataDir();
+  await fs.writeFile(COMPANIES_FILE, JSON.stringify(companies, null, 2));
+}
+
+// GET companies
 router.get('/companies', async (req, res) => {
   try {
-    // Return empty array for now - could add file-based storage later
+    const companies = await loadCompanies();
     res.json({
       success: true,
-      companies: []
+      data: companies,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: companies.length,
+        pages: 1
+      },
+      stats: {
+        total: companies.length,
+        active: companies.filter(c => c.isActive).length,
+        totalBalance: companies.reduce((sum, c) => sum + (c.balance || 0), 0)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// POST companies - add new company
+router.post('/companies', async (req, res) => {
+  try {
+    const { name, legalName, afm, doy, email, phone, street, streetNumber, city, postalCode, businessType, industry } = req.body;
+    
+    // Basic validation
+    if (!name || !afm || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Όνομα, ΑΦΜ και Email είναι υποχρεωτικά'
+      });
+    }
+
+    const companies = await loadCompanies();
+    
+    // Check for duplicate AFM
+    if (companies.find(c => c.afm === afm)) {
+      return res.status(409).json({
+        success: false,
+        error: 'Υπάρχει ήδη κατάστημα με αυτόν τον ΑΦΜ'
+      });
+    }
+
+    const newCompany = {
+      id: Date.now().toString(),
+      name: name,
+      legalName: legalName || name,
+      afm: afm,
+      doy: doy || '',
+      email: email,
+      phone: phone || '',
+      street: street || '',
+      streetNumber: streetNumber || '',
+      city: city || '',
+      postalCode: postalCode || '',
+      businessType: businessType || 'Ατομική',
+      industry: industry || 'Εμπόριο',
+      isActive: true,
+      balance: 0,
+      createdAt: new Date().toISOString(),
+      settings: {
+        invoicePrefix: 'INV',
+        currentInvoiceNumber: 1,
+        defaultVatRate: 24
+      }
+    };
+
+    companies.push(newCompany);
+    await saveCompanies(companies);
+
+    res.status(201).json({
+      success: true,
+      data: newCompany
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// PUT companies/:id - update company
+router.put('/companies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const companies = await loadCompanies();
+    const companyIndex = companies.findIndex(c => c.id === id);
+    
+    if (companyIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Δεν βρέθηκε το κατάστημα'
+      });
+    }
+
+    // Update company
+    companies[companyIndex] = {
+      ...companies[companyIndex],
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+
+    await saveCompanies(companies);
+
+    res.json({
+      success: true,
+      data: companies[companyIndex]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// DELETE companies/:id
+router.delete('/companies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const companies = await loadCompanies();
+    const filteredCompanies = companies.filter(c => c.id !== id);
+    
+    if (filteredCompanies.length === companies.length) {
+      return res.status(404).json({
+        success: false,
+        error: 'Δεν βρέθηκε το κατάστημα'
+      });
+    }
+
+    await saveCompanies(filteredCompanies);
+
+    res.json({
+      success: true,
+      message: 'Το κατάστημα διαγράφηκε επιτυχώς'
     });
   } catch (error) {
     res.status(500).json({
