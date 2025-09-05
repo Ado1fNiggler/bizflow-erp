@@ -14,6 +14,8 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 import app from './app.js';
 import sequelize from './config/database.js';
 import { logger } from './utils/logger.js';
+// Import models to ensure they are loaded
+import './models/index.js';
 
 // Server configuration
 const PORT = process.env.PORT || 5000;
@@ -34,14 +36,13 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('✅ Database connection established successfully');
     
-    // Sync database models - simpler approach
+    // Force create database tables - aggressive approach
     try {
       if (NODE_ENV === 'production') {
-        logger.info('🔄 Setting up database tables in production...');
-        // Force sync in production to create all tables
-        // This will create tables if they don't exist
-        await sequelize.sync({ force: false, alter: true });
-        logger.info('✅ Database tables created/updated successfully');
+        logger.info('🔄 FORCE creating database tables in production...');
+        // Force sync to recreate all tables (this will drop existing tables!)
+        await sequelize.sync({ force: true });
+        logger.info('✅ Database tables force created successfully');
       } else {
         // Development: Check if we should reset the database
         if (process.env.RESET_DB === 'true') {
@@ -56,14 +57,7 @@ const startServer = async () => {
       }
     } catch (syncError) {
       logger.error('❌ Database setup failed:', syncError.message);
-      // Try one more time with force to create tables
-      try {
-        logger.info('🔄 Attempting force sync to create tables...');
-        await sequelize.sync({ force: true });
-        logger.info('✅ Database tables created with force sync');
-      } catch (forceSyncError) {
-        logger.error('❌ Force sync also failed:', forceSyncError.message);
-      }
+      throw syncError; // Let it fail so we can see the error clearly
     }
     
     // Start Express server
