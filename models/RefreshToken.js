@@ -44,12 +44,12 @@ const RefreshToken = sequelize.define('RefreshToken', {
   },
   
   createdByIp: {
-    type: DataTypes.INET,
+    type: DataTypes.STRING(45), // IPv6 max length
     allowNull: true
   },
   
   revokedByIp: {
-    type: DataTypes.INET,
+    type: DataTypes.STRING(45), // IPv6 max length
     allowNull: true
   }
 }, {

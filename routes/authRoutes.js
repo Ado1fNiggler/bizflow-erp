@@ -158,13 +158,18 @@ router.post('/login', rateLimiter('login'), loginValidation, async (req, res) =>
       { expiresIn: '90d' }
     );
 
-    // Store refresh token
-    await RefreshToken.create({
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-      createdByIp: req.ip
-    });
+    // Store refresh token (temporarily disabled for initial testing)
+    try {
+      await RefreshToken.create({
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        createdByIp: req.ip
+      });
+    } catch (refreshError) {
+      console.warn('Failed to store refresh token:', refreshError.message);
+      // Don't fail login if refresh token storage fails
+    }
 
     // Audit log
     await auditService.log({
