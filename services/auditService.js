@@ -133,16 +133,19 @@ class AuditService {
         }
       });
 
-    if (recentFailures >= this.securityAlertThresholds.failedLogins) {
-      await this.triggerSecurityAlert({
-        type: 'BRUTE_FORCE_ATTEMPT',
-        severity: 'high',
-        details: {
-          userId,
-          ipAddress,
-          failedAttempts: recentFailures
-        }
-      });
+      if (recentFailures >= this.securityAlertThresholds.failedLogins) {
+        await this.triggerSecurityAlert({
+          type: 'BRUTE_FORCE_ATTEMPT',
+          severity: 'high',
+          details: {
+            userId,
+            ipAddress,
+            failedAttempts: recentFailures
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking failed logins:', error);
     }
   }
 
