@@ -207,11 +207,31 @@ app.get('/favicon.ico', (req, res) => {
 // ============================================
 app.get('/', (req, res) => {
   // Send the frontend HTML directly
-  const indexPath = path.join(__dirname, 'frontend', 'index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      res.send('BizFlow ERP is running');
-    }
+  const indexPath = path.resolve(__dirname, 'frontend', 'index.html');
+  console.log('Trying to serve:', indexPath);
+  
+  // Try to read the file first
+  import('fs').then(fs => {
+    fs.promises.access(indexPath)
+      .then(() => {
+        console.log('File exists, serving...');
+        res.sendFile(indexPath);
+      })
+      .catch(err => {
+        console.error('File does not exist:', err);
+        // Send basic HTML instead
+        res.send(`
+          <!DOCTYPE html>
+          <html>
+          <head><title>BizFlow ERP</title></head>
+          <body>
+            <h1>BizFlow ERP is running</h1>
+            <p>Frontend file not found at: ${indexPath}</p>
+            <p><a href="/test">Go to Test Page</a></p>
+          </body>
+          </html>
+        `);
+      });
   });
 });
 
