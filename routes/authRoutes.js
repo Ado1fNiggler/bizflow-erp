@@ -27,26 +27,14 @@ const loginValidation = [
 
 const registerValidation = [
   body('email').isEmail().normalizeEmail(),
-  body('password').isStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-    minSymbols: 1
-  }),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('name').notEmpty().trim().isLength({ min: 2, max: 100 }),
-  body('confirmPassword').custom((value, { req }) => value === req.body.password)
+  body('confirmPassword').custom((value, { req }) => value === req.body.password).withMessage('Passwords do not match')
 ];
 
 const resetPasswordValidation = [
-  body('password').isStrongPassword({
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-    minSymbols: 1
-  }),
-  body('confirmPassword').custom((value, { req }) => value === req.body.password)
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('confirmPassword').custom((value, { req }) => value === req.body.password).withMessage('Passwords do not match')
 ];
 
 // ======================
