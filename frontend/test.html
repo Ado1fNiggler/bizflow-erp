@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test - BizFlow ERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form { max-width: 400px; margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        input, button { margin: 5px 0; padding: 10px; width: 100%; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>BizFlow ERP - Απλή Δοκιμή</h1>
+
+    <div class="form">
+        <h3>Εγγραφή Χρήστη (Απλή)</h3>
+        <input type="text" id="regName" placeholder="Όνομα" value="Test User">
+        <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="regPassword" placeholder="Κωδικός" value="123">
+        <button onclick="simpleRegister()">Εγγραφή</button>
+        <div id="regResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="form">
+        <h3>Σύνδεση (Απλή)</h3>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="Κωδικός" value="123">
+        <button onclick="simpleLogin()">Σύνδεση</button>
+        <div id="loginResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="form">
+        <h3>Λίστα Χρηστών</h3>
+        <button onclick="loadUsers()">Φόρτωση Χρηστών</button>
+        <div id="usersResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api/v1';
+
+        async function simpleRegister() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const resultDiv = document.getElementById('regResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/simple/simple-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ ${data.message}<br>User: ${JSON.stringify(data.user, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function simpleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/simple/simple-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ ${data.message}<br>User: ${JSON.stringify(data.user, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function loadUsers() {
+            const resultDiv = document.getElementById('usersResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/simple/simple-users`);
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ Χρήστες: <pre>${JSON.stringify(data.users, null, 2)}</pre>`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

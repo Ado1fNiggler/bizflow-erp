@@ -1,0 +1,172 @@
+// routes/simpleAuth.js
+// Ultra simple authentication - no dependencies
+
+import express from 'express';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const router = express.Router();
+
+// Simple file-based user storage
+const USERS_FILE = path.join(__dirname, '../data/users.json');
+
+// Ensure data directory exists
+async function ensureDataDir() {
+  const dataDir = path.join(__dirname, '../data');
+  try {
+    await fs.access(dataDir);
+  } catch {
+    await fs.mkdir(dataDir, { recursive: true });
+  }
+}
+
+// Load users from file
+async function loadUsers() {
+  try {
+    await ensureDataDir();
+    const data = await fs.readFile(USERS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+// Save users to file
+async function saveUsers(users) {
+  await ensureDataDir();
+  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// Simple registration
+router.post('/simple-register', async (req, res) => {
+  try {
+    console.log('Simple registration attempt:', req.body);
+    
+    const { email, password, name } = req.body;
+    
+    // Basic validation
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required'
+      });
+    }
+
+    if (password.length < 3) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 3 characters'
+      });
+    }
+
+    // Load existing users
+    const users = await loadUsers();
+    
+    // Check if user already exists
+    if (users.find(u => u.email === email)) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email already exists'
+      });
+    }
+
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      name,
+      password, // In real app, this would be hashed
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await saveUsers(users);
+
+    console.log('User registered successfully:', newUser.email);
+
+    res.json({
+      success: true,
+      message: 'Registration successful!',
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error: ' + error.message
+    });
+  }
+});
+
+// Simple login
+router.post('/simple-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password required'
+      });
+    }
+
+    const users = await loadUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email or password'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Login successful!',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error: ' + error.message
+    });
+  }
+});
+
+// List all users (for testing)
+router.get('/simple-users', async (req, res) => {
+  try {
+    const users = await loadUsers();
+    res.json({
+      success: true,
+      users: users.map(u => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        createdAt: u.createdAt
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+export default router;

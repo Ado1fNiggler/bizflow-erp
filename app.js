@@ -23,6 +23,7 @@ import { validateRequest } from './middleware/validation.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
+import simpleAuthRoutes from './routes/simpleAuth.js';
 import companyRoutes from './routes/companyRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
@@ -129,6 +130,12 @@ app.get('/app.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'app.js'));
 });
 
+// Simple test page
+app.get('/test', (req, res) => {
+  console.log('Serving /test');
+  res.sendFile(path.join(__dirname, 'frontend', 'test.html'));
+});
+
 // Serve static assets
 app.use(express.static(frontendPath));
 
@@ -139,6 +146,7 @@ const API_PREFIX = '/api/v1';
 
 // Public routes (no authentication required)
 app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/simple`, simpleAuthRoutes); // Simple backup auth
 app.use(`${API_PREFIX}/system`, systemRoutes);
 app.use(`${API_PREFIX}/test`, testRoutes); // Test routes for development
 
