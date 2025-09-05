@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load environment variables
+// Load environment variables  
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -34,20 +34,41 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('✅ Database connection established successfully');
     
-    // Sync database models
+    // Run database migrations in production
     try {
-      // Check if we should reset the database (ONLY use in development!)
-      if (process.env.RESET_DB === 'true') {
-        logger.warn('⚠️ RESETTING DATABASE - All data will be lost!');
-        await sequelize.sync({ force: true });
-        logger.info('✅ Database reset and recreated');
+      if (NODE_ENV === 'production') {
+        logger.info('🔄 Running database migrations in production...');
+        const { exec } = await import('child_process');
+        const { promisify } = await import('util');
+        const execAsync = promisify(exec);
+        
+        try {
+          const { stdout, stderr } = await execAsync('npx sequelize-cli db:migrate', {
+            cwd: __dirname,
+            env: process.env
+          });
+          logger.info('✅ Database migrations completed successfully');
+          logger.debug('Migration output:', stdout);
+        } catch (migrationError) {
+          logger.warn('⚠️ Migration failed, falling back to sync:', migrationError.message);
+          // Fallback to sync if migrations fail
+          await sequelize.sync({ alter: false });
+          logger.info('✅ Database fallback sync completed');
+        }
       } else {
-        // Normal sync - create tables if they don't exist
-        await sequelize.sync(syncOptions);
-        logger.info('✅ Database models synchronized');
+        // Development: Check if we should reset the database
+        if (process.env.RESET_DB === 'true') {
+          logger.warn('⚠️ RESETTING DATABASE - All data will be lost!');
+          await sequelize.sync({ force: true });
+          logger.info('✅ Database reset and recreated');
+        } else {
+          // Normal sync - create tables if they don't exist
+          await sequelize.sync(syncOptions);
+          logger.info('✅ Database models synchronized');
+        }
       }
     } catch (syncError) {
-      logger.error('❌ Database sync failed:', syncError.message);
+      logger.error('❌ Database setup failed:', syncError.message);
       // Don't try to recover - let it fail so we can see the error
     }
     
