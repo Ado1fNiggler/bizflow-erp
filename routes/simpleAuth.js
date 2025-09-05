@@ -169,4 +169,48 @@ router.get('/simple-users', async (req, res) => {
   }
 });
 
+// Simple file-based data endpoints (no authentication for simplicity)
+router.get('/companies', async (req, res) => {
+  try {
+    // Return empty array for now - could add file-based storage later
+    res.json({
+      success: true,
+      companies: []
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/invoices', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      invoices: []
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/members', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      members: []
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 export default router;

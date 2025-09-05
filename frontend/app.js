@@ -12,7 +12,7 @@ async function login(event) {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const response = await fetch(`${API_BASE}/simple/simple-login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -24,8 +24,8 @@ async function login(event) {
 
         if (response.ok && data.success) {
             currentUser = data.user;
-            currentToken = data.accessToken;
-            localStorage.setItem('token', data.accessToken);
+            currentToken = 'simple-token'; // No JWT tokens in simple auth
+            localStorage.setItem('token', 'simple-token');
             localStorage.setItem('user', JSON.stringify(data.user));
             
             showDashboard();
@@ -51,7 +51,7 @@ async function register() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/auth/register`, {
+        const response = await fetch(`${API_BASE}/simple/simple-register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,11 +144,7 @@ async function loadDashboardData() {
 
 async function loadCompaniesCount() {
     try {
-        const response = await fetch(`${API_BASE}/companies`, {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`,
-            },
-        });
+        const response = await fetch(`${API_BASE}/simple/companies`);
 
         if (response.ok) {
             const data = await response.json();
@@ -161,11 +157,7 @@ async function loadCompaniesCount() {
 
 async function loadInvoicesCount() {
     try {
-        const response = await fetch(`${API_BASE}/invoices`, {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`,
-            },
-        });
+        const response = await fetch(`${API_BASE}/simple/invoices`);
 
         if (response.ok) {
             const data = await response.json();
@@ -179,11 +171,7 @@ async function loadInvoicesCount() {
 
 async function loadMembersCount() {
     try {
-        const response = await fetch(`${API_BASE}/members`, {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`,
-            },
-        });
+        const response = await fetch(`${API_BASE}/simple/members`);
 
         if (response.ok) {
             const data = await response.json();
@@ -202,11 +190,7 @@ async function loadTotalRevenue() {
 
 async function loadCompanies() {
     try {
-        const response = await fetch(`${API_BASE}/companies`, {
-            headers: {
-                'Authorization': `Bearer ${currentToken}`,
-            },
-        });
+        const response = await fetch(`${API_BASE}/simple/companies`);
 
         if (response.ok) {
             const data = await response.json();
