@@ -23,8 +23,8 @@ class AuditService {
 
   async log(data) {
     try {
-      // Temporarily disable audit logging until tables are created
-      if (process.env.DISABLE_AUDIT_LOGGING === 'true' || process.env.NODE_ENV === 'production') {
+      // Only disable if explicitly set
+      if (process.env.DISABLE_AUDIT_LOGGING === 'true') {
         console.log('🔍 Audit event (logging disabled):', { action: data.action, entityType: data.entityType });
         return null;
       }
@@ -91,8 +91,8 @@ class AuditService {
   // ======================
 
   async checkSecurityThresholds(logData) {
-    // Temporarily disable security threshold checks in production
-    if (process.env.DISABLE_AUDIT_LOGGING === 'true' || process.env.NODE_ENV === 'production') {
+    // Only disable if explicitly set
+    if (process.env.DISABLE_AUDIT_LOGGING === 'true') {
       return;
     }
 

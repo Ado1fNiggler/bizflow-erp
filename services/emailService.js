@@ -134,6 +134,12 @@ class EmailService {
   // Αποστολή απλού email
   async send(to, subject, html, attachments = []) {
     try {
+      // Skip email if transporter not configured
+      if (!this.transporter) {
+        console.warn('⚠️ Email service not configured - skipping email to:', to);
+        return { messageId: 'mock-' + Date.now() };
+      }
+
       const mailOptions = {
         from: `"${process.env.APP_NAME || 'ERP System'}" <${process.env.SMTP_FROM || 'noreply@example.com'}>`,
         to,

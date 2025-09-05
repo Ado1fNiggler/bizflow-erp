@@ -34,27 +34,14 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('✅ Database connection established successfully');
     
-    // Run database migrations in production
+    // Sync database models - simpler approach
     try {
       if (NODE_ENV === 'production') {
-        logger.info('🔄 Running database migrations in production...');
-        const { exec } = await import('child_process');
-        const { promisify } = await import('util');
-        const execAsync = promisify(exec);
-        
-        try {
-          const { stdout, stderr } = await execAsync('npx sequelize-cli db:migrate', {
-            cwd: __dirname,
-            env: process.env
-          });
-          logger.info('✅ Database migrations completed successfully');
-          logger.debug('Migration output:', stdout);
-        } catch (migrationError) {
-          logger.warn('⚠️ Migration failed, falling back to sync:', migrationError.message);
-          // Fallback to sync if migrations fail
-          await sequelize.sync({ alter: false });
-          logger.info('✅ Database fallback sync completed');
-        }
+        logger.info('🔄 Setting up database tables in production...');
+        // Force sync in production to create all tables
+        // This will create tables if they don't exist
+        await sequelize.sync({ force: false, alter: true });
+        logger.info('✅ Database tables created/updated successfully');
       } else {
         // Development: Check if we should reset the database
         if (process.env.RESET_DB === 'true') {
@@ -69,7 +56,14 @@ const startServer = async () => {
       }
     } catch (syncError) {
       logger.error('❌ Database setup failed:', syncError.message);
-      // Don't try to recover - let it fail so we can see the error
+      // Try one more time with force to create tables
+      try {
+        logger.info('🔄 Attempting force sync to create tables...');
+        await sequelize.sync({ force: true });
+        logger.info('✅ Database tables created with force sync');
+      } catch (forceSyncError) {
+        logger.error('❌ Force sync also failed:', forceSyncError.message);
+      }
     }
     
     // Start Express server

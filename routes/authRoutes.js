@@ -247,11 +247,7 @@ router.post('/register', rateLimiter('auth'), registerValidation, async (req, re
     });
 
     // Send verification email
-    await emailService.sendVerificationEmail({
-      to: user.email,
-      name: user.name,
-      token: verificationToken
-    });
+    await emailService.sendVerificationEmail(user, verificationToken);
 
     // Audit log
     await auditService.log({
@@ -396,11 +392,7 @@ router.post('/forgot-password', rateLimiter('passwordReset'), async (req, res) =
     });
 
     // Send reset email
-    await emailService.sendPasswordResetEmail({
-      to: user.email,
-      name: user.name,
-      token: resetToken
-    });
+    await emailService.sendPasswordResetEmail(user, resetToken);
 
     // Audit log
     await auditService.log({
@@ -463,11 +455,20 @@ router.post('/reset-password', resetPasswordValidation, async (req, res) => {
       email: user.email
     });
 
-    // Send confirmation email
-    await emailService.sendPasswordChangedEmail({
-      to: user.email,
-      name: user.name
-    });
+    // Send confirmation email (using password reset template for now)
+    // TODO: Create dedicated password changed email template
+    try {
+      await emailService.send(
+        user.email,
+        'Ο κωδικός σας άλλαξε',
+        `<p>Γεια σας ${user.name},</p>
+         <p>Ο κωδικός σας άλλαξε επιτυχώς.</p>
+         <p>Αν δεν κάνατε εσείς αυτή την αλλαγή, επικοινωνήστε μαζί μας άμεσα.</p>`
+      );
+    } catch (emailError) {
+      console.error('Failed to send password changed email:', emailError);
+      // Don't fail the password reset if email fails
+    }
 
     res.json({
       success: true,
