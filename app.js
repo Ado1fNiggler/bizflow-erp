@@ -115,29 +115,17 @@ app.use(requestLogger);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// Serve frontend files
-const frontendPath = path.join(__dirname, 'frontend');
-console.log('Frontend path:', frontendPath);
+// Frontend is now embedded in the root route
 
-// Serve the frontend app
+// Redirect /app to main app
 app.get('/app', (req, res) => {
-  console.log('Serving /app');
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  console.log('Redirecting /app to /');
+  res.redirect('/');
 });
 
-app.get('/app.js', (req, res) => {
-  console.log('Serving /app.js');
-  res.sendFile(path.join(__dirname, 'frontend', 'app.js'));
-});
+// Removed old frontend routes - using embedded HTML now
 
-// Simple test page
-app.get('/test', (req, res) => {
-  console.log('Serving /test');
-  res.sendFile(path.join(__dirname, 'frontend', 'test.html'));
-});
-
-// Serve static assets
-app.use(express.static(frontendPath));
+// No more static frontend serving needed
 
 // ============================================
 // API Routes
