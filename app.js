@@ -195,6 +195,9 @@ app.get('/favicon.ico', (req, res) => {
 // ============================================
 app.get('/', (req, res) => {
   // Embed the HTML directly to avoid file path issues
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache'); 
+  res.set('Expires', '0');
   res.send(`
 <!DOCTYPE html>
 <html lang="el">
