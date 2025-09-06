@@ -971,15 +971,15 @@ app.get('/', (req, res) => {
                     '</td>' +
                     '<td>' +
                         '<div class="btn-group btn-group-sm">' +
-                            '<button class="btn btn-outline-primary" onclick="editCompany(\'' + company.id + '\')" ' +
+                            '<button class="btn btn-outline-primary" onclick="editCompany(&quot;' + company.id + '&quot;)" ' +
                                     'title="Επεξεργασία">' +
                                 '<i class="bi bi-pencil"></i>' +
                             '</button>' +
-                            '<button class="btn btn-outline-info" onclick="viewCompany(\'' + company.id + '\')" ' +
+                            '<button class="btn btn-outline-info" onclick="viewCompany(&quot;' + company.id + '&quot;)" ' +
                                     'title="Προβολή">' +
                                 '<i class="bi bi-eye"></i>' +
                             '</button>' +
-                            '<button class="btn btn-outline-danger" onclick="deleteCompany(\'' + company.id + '\', \'' + escapeHtml(company.name) + '\')" ' +
+                            '<button class="btn btn-outline-danger" onclick="deleteCompany(&quot;' + company.id + '&quot;, &quot;' + escapeHtml(company.name) + '&quot;)" ' +
                                     'title="Διαγραφή">' +
                                 '<i class="bi bi-trash"></i>' +
                             '</button>' +
@@ -1090,7 +1090,7 @@ app.get('/', (req, res) => {
         }
 
         async function deleteCompany(companyId, companyName) {
-            if (!confirm('Είστε σίγουρος ότι θέλετε να διαγράψετε το κατάστημα "' + companyName + '";\\n\\nΑυτή η ενέργεια δεν μπορεί να αναιρεθεί.')) {
+            if (!confirm('Είστε σίγουρος ότι θέλετε να διαγράψετε το κατάστημα "' + companyName + '"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.')) {
                 return;
             }
 
@@ -1188,13 +1188,13 @@ app.get('/', (req, res) => {
                     '</td>' +
                     '<td>' +
                         '<div class="btn-group btn-group-sm">' +
-                            '<button class="btn btn-outline-primary" onclick="viewInvoice(\'' + invoice.id + '\')" title="Προβολή">' +
+                            '<button class="btn btn-outline-primary" onclick="viewInvoice(&quot;' + invoice.id + '&quot;)" title="Προβολή">' +
                                 '<i class="bi bi-eye"></i>' +
                             '</button>' +
-                            '<button class="btn btn-outline-info" onclick="editInvoice(\'' + invoice.id + '\')" title="Επεξεργασία">' +
+                            '<button class="btn btn-outline-info" onclick="editInvoice(&quot;' + invoice.id + '&quot;)" title="Επεξεργασία">' +
                                 '<i class="bi bi-pencil"></i>' +
                             '</button>' +
-                            '<button class="btn btn-outline-danger" onclick="deleteInvoice(\'' + invoice.id + '\', \'' + escapeHtml(invoice.invoiceNumber) + '\')" title="Διαγραφή">' +
+                            '<button class="btn btn-outline-danger" onclick="deleteInvoice(&quot;' + invoice.id + '&quot;, &quot;' + escapeHtml(invoice.invoiceNumber) + '&quot;)" title="Διαγραφή">' +
                                 '<i class="bi bi-trash"></i>' +
                             '</button>' +
                         '</div>' +
